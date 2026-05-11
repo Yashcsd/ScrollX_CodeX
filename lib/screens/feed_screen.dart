@@ -217,15 +217,18 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) => PageView.builder(
     controller: _ctrl,
     scrollDirection: Axis.vertical,
-    itemCount: _allGames.length,
-    onPageChanged: (i) => setState(() => _page = i),
-    itemBuilder: (_, i) => _GameCard(
-      game:    _allGames[i],
-      isActive: i == _page,
-      pageIdx:  i,
-      total:    _allGames.length,
-      onPlay:   () => _play(_allGames[i]),
-    ),
+    itemCount: null,
+    onPageChanged: (i) => setState(() => _page = i % _allGames.length),
+    itemBuilder: (_, i) {
+      final idx = i % _allGames.length;
+      return _GameCard(
+        game:    _allGames[idx],
+        isActive: idx == _page,
+        pageIdx:  idx,
+        total:   _allGames.length,
+        onPlay:  () => _play(_allGames[idx]),
+      );
+    },
   );
 }
 
