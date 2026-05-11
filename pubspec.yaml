@@ -45,12 +45,12 @@ flutter:
 
   # 📁 Assets
   assets:
-    - assets/icon.png
+    - assets/images/ScrollX_Logo.png
 
 # 🔥 ICON CONFIG (VERY IMPORTANT)
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon.png"
+  image_path: "assets/images/ScrollX_Logo.png"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/icon.png"
+  adaptive_icon_foreground: "assets/images/ScrollX_Logo.png"
