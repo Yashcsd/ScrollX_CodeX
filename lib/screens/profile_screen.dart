@@ -141,11 +141,11 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
 
                 Text('Create Your Profile',
                   style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
                     color: Colors.white,
                     shadows: [
-                      Shadow(color: AppTheme.accent.withOpacity(0.5), blurRadius: 20),
+                      Shadow(color: AppTheme.accent.withOpacity(0.35), blurRadius: 14),
                     ],
                   ),
                 ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0),
@@ -155,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                 const Text(
                   'Set a username to track your XP, earn badges and climb the leaderboard.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 14),
+                  style: TextStyle(color: Colors.white70, height: 1.5, fontSize: 13),
                 ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
 
                 const SizedBox(height: 40),
@@ -239,9 +239,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                 floating: true,
                 title: Text('My Profile',
                   style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 22,
-                    shadows: [Shadow(color: AppTheme.accent.withOpacity(0.5), blurRadius: 10)],
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    shadows: [Shadow(color: AppTheme.accent.withOpacity(0.3), blurRadius: 8)],
                   ),
                 ),
                 actions: [
@@ -364,8 +364,8 @@ class _NeonProfileHeader extends StatelessWidget {
           child: Text(
             user.avatarInitials,
             style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
           ),
@@ -389,8 +389,8 @@ class _NeonProfileHeader extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
           decoration: const InputDecoration(
             border: InputBorder.none,
@@ -403,12 +403,12 @@ class _NeonProfileHeader extends StatelessWidget {
           : Text(
         user.username,
         style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w900,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
           color: Colors.white,
-          letterSpacing: 0.5,
+          letterSpacing: 0,
           shadows: [
-            Shadow(color: AppTheme.accent.withOpacity(0.6), blurRadius: 20),
+            Shadow(color: AppTheme.accent.withOpacity(0.32), blurRadius: 12),
           ],
         ),
       ),
@@ -417,7 +417,7 @@ class _NeonProfileHeader extends StatelessWidget {
 
       // Level badge
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [AppTheme.accent.withOpacity(0.3), AppTheme.accent.withOpacity(0.1)],
@@ -435,9 +435,9 @@ class _NeonProfileHeader extends StatelessWidget {
             'Level ${AppConstants.levelNumber(user.totalXp)} · ${AppConstants.levelTitle(user.totalXp)}',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0,
             ),
           ),
         ]),
@@ -463,9 +463,9 @@ class _NeonXpBar extends StatelessWidget {
     return Column(children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('Level $level · ${AppConstants.levelTitle(xp)}',
-            style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
         Text('$current / 500 XP',
-            style: const TextStyle(color: AppTheme.accent, fontSize: 12, fontWeight: FontWeight.w700)),
+            style: const TextStyle(color: AppTheme.accent, fontSize: 11, fontWeight: FontWeight.w600)),
       ]),
 
       const SizedBox(height: 8),
@@ -570,14 +570,14 @@ class _StatCard extends StatelessWidget {
         const SizedBox(height: 8),
         Text(value,
             style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             )),
         const SizedBox(height: 4),
         Text(label,
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: Colors.white60,
               fontWeight: FontWeight.w600,
             )),
@@ -613,8 +613,8 @@ class _BadgesSection extends StatelessWidget {
         const SizedBox(width: 8),
         const Text('Top Badges',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             )),
       ]),
@@ -631,7 +631,7 @@ class _BadgesSection extends StatelessWidget {
         ),
         child: const Center(
           child: Text('Play games to earn badges!',
-              style: TextStyle(color: Colors.white38, fontSize: 13)),
+              style: TextStyle(color: Colors.white38, fontSize: 12)),
         ),
       )
           : GridView.count(
@@ -711,8 +711,8 @@ class _BestScoresSection extends StatelessWidget {
         const SizedBox(width: 8),
         const Text('Best Scores',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             )),
       ]),
@@ -729,7 +729,7 @@ class _BestScoresSection extends StatelessWidget {
         ),
         child: const Center(
           child: Text('No scores yet. Start playing!',
-              style: TextStyle(color: Colors.white38, fontSize: 13)),
+              style: TextStyle(color: Colors.white38, fontSize: 12)),
         ),
       )
           : Column(

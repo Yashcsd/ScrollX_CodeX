@@ -1,14 +1,19 @@
 // lib/services/user_provider.dart
 // 100% offline — uses SharedPreferences only.
 // No Firebase import here. Add Firebase later in firestore_service.dart.
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../models/score_model.dart';
 import '../models/user_model.dart';
 import '../core/app_theme.dart';
+import 'firestore_service.dart';
 
 class UserProvider extends ChangeNotifier {
   final _uuid = const Uuid();
+  final _firestore = FirestoreService();
 
   UserModel? _user;
   bool       _loading = false;
@@ -18,6 +23,9 @@ class UserProvider extends ChangeNotifier {
   bool       get isLoading  => _loading;
   String?    get error      => _error;
   bool       get isLoggedIn => _user != null;
+
+  Stream<List<UserModel>> leaderboardStream() =>
+      _firestore.leaderboardStream();
 
   // ─────────────────────────────────────────────────────────────────────────
   // READ: Boot app — load saved user from device storage
@@ -43,6 +51,7 @@ class UserProvider extends ChangeNotifier {
           badges:         _parseBadges(
               prefs.getString('badges') ?? ''),
         );
+        unawaited(_syncUserToFirestore(_user!));
       }
     } catch (e) {
       _error = e.toString();
@@ -74,6 +83,7 @@ class UserProvider extends ChangeNotifier {
           avatarInitials: initials);
 
       await _persist(_user!);
+      await _syncUserToFirestore(_user!);
     } catch (e) {
       _error = e.toString();
       debugPrint('UserProvider.createUser error: $e');
@@ -96,6 +106,7 @@ class UserProvider extends ChangeNotifier {
     _user = _user!.copyWith(
         username: newUsername.trim(), avatarInitials: initials);
     await _persist(_user!);
+    await _syncUserToFirestore(_user!);
     notifyListeners();
   }
 
@@ -148,6 +159,13 @@ class UserProvider extends ChangeNotifier {
     );
 
     await _persist(_user!);
+    await _syncUserToFirestore(_user!);
+    await _saveScoreToFirestore(
+      gameId: gameId,
+      gameName: gameName,
+      score: score,
+      timeTakenSeconds: timeTakenSeconds,
+    );
     notifyListeners();
   }
 
@@ -155,9 +173,13 @@ class UserProvider extends ChangeNotifier {
   // DELETE: wipe everything from device
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> deleteAccount() async {
+    final deletedId = _user?.id;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+      if (deletedId != null) {
+        await _firestore.deleteUser(deletedId);
+      }
     } catch (e) {
       debugPrint('UserProvider.deleteAccount error: $e');
     }
@@ -196,4 +218,36 @@ class UserProvider extends ChangeNotifier {
 
   List<String> _parseBadges(String raw) =>
       raw.isEmpty ? [] : raw.split('|').where((s) => s.isNotEmpty).toList();
+
+  Future<void> _syncUserToFirestore(UserModel user) async {
+    try {
+      await _firestore.createUser(user);
+    } catch (e) {
+      debugPrint('UserProvider._syncUserToFirestore error: $e');
+    }
+  }
+
+  Future<void> _saveScoreToFirestore({
+    required String gameId,
+    required String gameName,
+    required int score,
+    required int timeTakenSeconds,
+  }) async {
+    final currentUser = _user;
+    if (currentUser == null) return;
+
+    try {
+      await _firestore.saveScore(ScoreModel(
+        id: '',
+        userId: currentUser.id,
+        username: currentUser.username,
+        gameId: gameId,
+        gameName: gameName,
+        score: score,
+        timeTakenSeconds: timeTakenSeconds,
+      ));
+    } catch (e) {
+      debugPrint('UserProvider._saveScoreToFirestore error: $e');
+    }
+  }
 }

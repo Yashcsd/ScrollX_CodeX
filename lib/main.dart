@@ -82,48 +82,83 @@ class _MainShellState extends State<MainShell> {
 
 // ── Custom bottom navigation bar ──────────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
-  final int    current;
+  final int current;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.current, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      color: AppTheme.bgCard,
-      border: Border(top: BorderSide(
-          color: AppTheme.border, width: 0.5)),
-    ),
-    child: SafeArea(
-      child: SizedBox(
-        height: 56,
-        child: Row(children: [
-          _Item(icon: Icons.play_circle_outline,
-              active: Icons.play_circle_filled,
-              label: 'Feed', idx: 0, current: current, onTap: onTap),
-          _Item(icon: Icons.emoji_events_outlined,
-              active: Icons.emoji_events,
-              label: 'Ranks', idx: 1, current: current, onTap: onTap),
-          _Item(icon: Icons.person_outline,
-              active: Icons.person,
-              label: 'Profile', idx: 2, current: current, onTap: onTap),
-        ]),
-      ),
-    ),
-  );
+        decoration: BoxDecoration(
+          color: const Color(0xFF100E24),
+          border: Border(
+            top: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.28),
+              blurRadius: 18,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 66,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Row(children: [
+                _Item(
+                  icon: Icons.play_circle_outline,
+                  active: Icons.play_circle_filled,
+                  label: 'Feed',
+                  idx: 0,
+                  current: current,
+                  color: AppTheme.accent,
+                  onTap: onTap,
+                ),
+                _Item(
+                  icon: Icons.emoji_events_outlined,
+                  active: Icons.emoji_events,
+                  label: 'Ranks',
+                  idx: 1,
+                  current: current,
+                  color: AppTheme.gold,
+                  onTap: onTap,
+                ),
+                _Item(
+                  icon: Icons.person_outline,
+                  active: Icons.person,
+                  label: 'Profile',
+                  idx: 2,
+                  current: current,
+                  color: AppTheme.teal,
+                  onTap: onTap,
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
 }
 
 class _Item extends StatelessWidget {
   final IconData icon;
   final IconData active;
-  final String   label;
-  final int      idx;
-  final int      current;
+  final String label;
+  final int idx;
+  final int current;
+  final Color color;
   final ValueChanged<int> onTap;
 
   const _Item({
-    required this.icon, required this.active,
-    required this.label, required this.idx,
-    required this.current, required this.onTap,
+    required this.icon,
+    required this.active,
+    required this.label,
+    required this.idx,
+    required this.current,
+    required this.color,
+    required this.onTap,
   });
 
   @override
@@ -133,23 +168,93 @@ class _Item extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onTap(idx),
         behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(on ? active : icon,
-                  key: ValueKey(on),
-                  color: on ? AppTheme.accent : AppTheme.textMuted,
-                  size: 24),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          height: 52,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: on ? color.withOpacity(0.14) : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: on ? color.withOpacity(0.28) : Colors.transparent,
             ),
-            const SizedBox(height: 3),
-            Text(label, style: TextStyle(
-              color: on ? AppTheme.accent : AppTheme.textMuted,
-              fontSize: 10,
-              fontWeight: on ? FontWeight.w600 : FontWeight.w400,
-            )),
-          ],
+          ),
+          child: Stack(children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: on ? 20 : 0,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            Center(
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: on ? 1 : 0),
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutBack,
+                builder: (context, pop, child) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Transform.translate(
+                      offset: Offset(0, -5 * pop),
+                      child: Transform.scale(
+                        scale: 1 + (0.10 * pop),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: on ? color.withOpacity(0.18) : Colors.transparent,
+                            boxShadow: on
+                                ? [
+                                    BoxShadow(
+                                      color: color.withOpacity(0.22),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            transitionBuilder: (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: ScaleTransition(scale: animation, child: child),
+                            ),
+                            child: Icon(
+                              on ? active : icon,
+                              key: ValueKey('$label-$on'),
+                              color: on ? color : AppTheme.textMuted,
+                              size: on ? 22 : 21,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 180),
+                      style: TextStyle(
+                        color: on ? color : AppTheme.textMuted,
+                        fontSize: 10,
+                        fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      child: Text(label),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ]),
         ),
       ),
     );

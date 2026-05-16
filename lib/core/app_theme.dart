@@ -42,6 +42,7 @@ class AppTheme {
   static ThemeData get theme => ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: bg,
+    fontFamily: GoogleFonts.manrope().fontFamily,
     colorScheme: const ColorScheme.dark(
       primary: accent,
       secondary: gold,
@@ -49,28 +50,28 @@ class AppTheme {
       error: coral,
     ),
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.exo2(
-          fontSize: 32, fontWeight: FontWeight.w700, color: textPrimary),
-      headlineLarge: GoogleFonts.exo2(
-          fontSize: 20, fontWeight: FontWeight.w600, color: textPrimary),
-      headlineMedium: GoogleFonts.exo2(
-          fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
-      bodyLarge: GoogleFonts.inter(
-          fontSize: 15, fontWeight: FontWeight.w400, color: textPrimary),
-      bodyMedium: GoogleFonts.inter(
-          fontSize: 13, fontWeight: FontWeight.w400, color: textSec),
-      bodySmall: GoogleFonts.inter(
-          fontSize: 11, fontWeight: FontWeight.w400, color: textMuted),
-      labelLarge: GoogleFonts.exo2(
-          fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary),
+      displayLarge: GoogleFonts.manrope(
+          fontSize: 28, fontWeight: FontWeight.w700, color: textPrimary),
+      headlineLarge: GoogleFonts.manrope(
+          fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary),
+      headlineMedium: GoogleFonts.manrope(
+          fontSize: 15, fontWeight: FontWeight.w600, color: textPrimary),
+      bodyLarge: GoogleFonts.manrope(
+          fontSize: 14, fontWeight: FontWeight.w400, color: textPrimary),
+      bodyMedium: GoogleFonts.manrope(
+          fontSize: 12, fontWeight: FontWeight.w400, color: textSec),
+      bodySmall: GoogleFonts.manrope(
+          fontSize: 10, fontWeight: FontWeight.w400, color: textMuted),
+      labelLarge: GoogleFonts.manrope(
+          fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: bg,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.exo2(
-        fontSize: 18, fontWeight: FontWeight.w700,
-        color: accent, letterSpacing: 1,
+      titleTextStyle: GoogleFonts.manrope(
+        fontSize: 17, fontWeight: FontWeight.w700,
+        color: accent, letterSpacing: 0,
       ),
       iconTheme: const IconThemeData(color: accentLight),
     ),
@@ -82,8 +83,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(24)),
         padding: const EdgeInsets.symmetric(
             horizontal: 28, vertical: 14),
-        textStyle: GoogleFonts.exo2(
-            fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.manrope(
+            fontSize: 14, fontWeight: FontWeight.w700),
       ),
     ),
     cardColor: bgCard,

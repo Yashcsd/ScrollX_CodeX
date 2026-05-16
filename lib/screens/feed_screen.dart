@@ -1,10 +1,15 @@
 // lib/screens/feed_screen.dart
 // CYBERPUNK NEON STYLE - ALL 25 GAMES
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'dart:math' as math;
 import '../core/app_theme.dart';
+import '../models/game_social_model.dart';
+import '../services/game_social_service.dart';
 import '../services/user_provider.dart';
 import '../widgets/common_widgets.dart';
 
@@ -193,6 +198,19 @@ final List<_FeedGame> _allGames = [
       buildScreen:()=>const PairsEquationScreen()),
 ];
 
+int _parseCompactCount(String value) {
+  final normalized = value.trim().toLowerCase();
+  final multiplier = normalized.endsWith('k') ? 1000 : 1;
+  final number = double.tryParse(normalized.replaceAll('k', '')) ?? 0;
+  return (number * multiplier).round();
+}
+
+String _formatCompactCount(int value) {
+  if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+  if (value >= 1000) return '${(value / 1000).toStringAsFixed(1)}k';
+  return value.toString();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Feed Screen with animations
 // ─────────────────────────────────────────────────────────────────────────────
@@ -210,6 +228,7 @@ class _FeedScreenState extends State<FeedScreen> with TickerProviderStateMixin {
   void dispose() { _ctrl.dispose(); super.dispose(); }
 
   void _play(_FeedGame g) {
+    GameSocialService.recordPlay(g.id);
     Navigator.push(context, MaterialPageRoute(builder: (_) => g.buildScreen()));
   }
 
@@ -221,12 +240,18 @@ class _FeedScreenState extends State<FeedScreen> with TickerProviderStateMixin {
     onPageChanged: (i) => setState(() => _page = i % _allGames.length),
     itemBuilder: (_, i) {
       final idx = i % _allGames.length;
+      final game = _allGames[idx];
+      unawaited(GameSocialService.seedStats(
+        gameId: game.id,
+        plays: _parseCompactCount(game.plays),
+        rating: game.rating,
+      ));
       return _GameCard(
-        game: _allGames[idx],
+        game: game,
         isActive: idx == _page,
         pageIdx: idx,
         total: _allGames.length,
-        onPlay: () => _play(_allGames[idx]),
+        onPlay: () => _play(game),
       );
     },
   );
@@ -276,24 +301,24 @@ class _GameCard extends StatelessWidget {
           child: Row(children: [
             Text('ScrollX',
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
                 color: Colors.white,
-                letterSpacing: 1.5,
+                letterSpacing: 0,
                 shadows: [
-                  Shadow(color: game.glowColor.withOpacity(0.5), blurRadius: 10),
+                  Shadow(color: game.glowColor.withValues(alpha: 0.35), blurRadius: 8),
                 ],
               ),
             ).animate(onPlay: (controller) => controller.repeat())
-                .shimmer(duration: 2000.ms, color: game.glowColor.withOpacity(0.3)),
+                .shimmer(duration: 2000.ms, color: game.glowColor.withValues(alpha: 0.3)),
 
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: game.glowColor.withOpacity(0.3)),
+                border: Border.all(color: game.glowColor.withValues(alpha: 0.3)),
               ),
               child: Text('${pageIdx+1}/$total',
                   style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
@@ -318,18 +343,18 @@ class _GameCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: game.glowColor.withOpacity(0.15),
+                color: game.glowColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: game.glowColor.withOpacity(0.4), width: 1.5),
+                border: Border.all(color: game.glowColor.withValues(alpha: 0.4), width: 1.5),
                 boxShadow: [
-                  BoxShadow(color: game.glowColor.withOpacity(0.3), blurRadius: 12, spreadRadius: 1),
+                  BoxShadow(color: game.glowColor.withValues(alpha: 0.3), blurRadius: 12, spreadRadius: 1),
                 ],
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.bolt, color: game.glowColor, size: 14),
                 const SizedBox(width: 4),
                 Text('+120 XP on win',
-                    style: TextStyle(color: game.glowColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                    style: TextStyle(color: game.glowColor, fontSize: 10, fontWeight: FontWeight.w600)),
               ]),
             ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.3, end: 0),
 
@@ -338,13 +363,12 @@ class _GameCard extends StatelessWidget {
             // Game title with neon effect
             Text(game.name,
               style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
-                letterSpacing: 0.5,
+                letterSpacing: 0,
                 shadows: [
-                  Shadow(color: game.glowColor.withOpacity(0.6), blurRadius: 20),
-                  Shadow(color: game.glowColor, blurRadius: 40),
+                  Shadow(color: game.glowColor.withValues(alpha: 0.38), blurRadius: 16),
                 ],
               ),
             ).animate().fadeIn(duration: 600.ms, delay: 100.ms).slideY(begin: 0.2, end: 0),
@@ -352,24 +376,35 @@ class _GameCard extends StatelessWidget {
             const SizedBox(height: 8),
 
             Text(game.description,
-              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+              style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.45),
               maxLines: 2,
             ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
 
             const SizedBox(height: 12),
 
-            // Stats row
-            Row(children: [
-              ..._stars(game.rating),
-              const SizedBox(width: 6),
-              Text(game.rating.toStringAsFixed(1),
-                  style: const TextStyle(color: AppTheme.gold, fontSize: 13, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 16),
-              const Icon(Icons.people_outline, size: 15, color: Colors.white54),
-              const SizedBox(width: 4),
-              Text('${game.plays} plays',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            ]).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+            // Live stats row
+            StreamBuilder<GameSocialStats>(
+              stream: GameSocialService.statsStream(game.id),
+              builder: (context, snapshot) {
+                final stats = snapshot.data ??
+                    GameSocialStats(
+                      plays: _parseCompactCount(game.plays),
+                    );
+                final rating = stats.ratingCount == 0 ? game.rating : stats.rating;
+
+                return Row(children: [
+                  ..._stars(rating),
+                  const SizedBox(width: 6),
+                  Text(rating.toStringAsFixed(1),
+                      style: const TextStyle(color: AppTheme.gold, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.people_outline, size: 15, color: Colors.white54),
+                  const SizedBox(width: 4),
+                  Text('${_formatCompactCount(stats.plays)} plays',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                ]);
+              },
+            ).animate().fadeIn(duration: 600.ms, delay: 300.ms),
 
             const SizedBox(height: 16),
 
@@ -396,28 +431,80 @@ class _GameCard extends StatelessWidget {
       Positioned(
         right: 14,
         bottom: 120,
-        child: Column(children: [
-          _NeonActionBtn(
-            icon: Icons.favorite_border,
-            label: '${pageIdx * 817 + 2100}',
-            color: AppTheme.pink,
-            glowColor: const Color(0xFFFF4D94),
-          ),
-          const SizedBox(height: 20),
-          _NeonActionBtn(
-            icon: Icons.share_outlined,
-            label: 'Share',
-            color: Colors.white70,
-            glowColor: game.glowColor,
-          ),
-          const SizedBox(height: 20),
-          _NeonActionBtn(
-            icon: Icons.bookmark_border,
-            label: 'Save',
-            color: Colors.white70,
-            glowColor: game.glowColor,
-          ),
-        ]),
+        child: StreamBuilder<GameSocialStats>(
+          stream: GameSocialService.statsStream(game.id),
+          builder: (context, statsSnapshot) {
+            final stats = statsSnapshot.data ?? const GameSocialStats();
+            return StreamBuilder<GameUserSocialState>(
+              stream: GameSocialService.userStateStream(
+                gameId: game.id,
+                userId: user?.id,
+              ),
+              builder: (context, stateSnapshot) {
+                final state = stateSnapshot.data ?? const GameUserSocialState();
+                return Column(children: [
+                  _NeonActionBtn(
+                    icon: state.liked ? Icons.favorite : Icons.favorite_border,
+                    label: _formatCompactCount(stats.likes),
+                    color: state.liked ? AppTheme.pink : Colors.white70,
+                    glowColor: const Color(0xFFFF4D94),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      if (user == null) {
+                        _showProfileRequired(context);
+                        return;
+                      }
+                      GameSocialService.toggleLike(
+                        gameId: game.id,
+                        userId: user.id,
+                        currentlyLiked: state.liked,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _NeonActionBtn(
+                    icon: Icons.share_outlined,
+                    label: _formatCompactCount(stats.shares),
+                    color: Colors.white70,
+                    glowColor: game.glowColor,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      GameSocialService.share(game.id);
+                      unawaited(_ShareBridge.shareGame(game.name).then((shared) {
+                        if (shared || !context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Share text copied'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      }));
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _NeonActionBtn(
+                    icon: state.saved ? Icons.bookmark : Icons.bookmark_border,
+                    label: _formatCompactCount(stats.saves),
+                    color: state.saved ? game.glowColor : Colors.white70,
+                    glowColor: game.glowColor,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      if (user == null) {
+                        _showProfileRequired(context);
+                        return;
+                      }
+                      GameSocialService.toggleSave(
+                        gameId: game.id,
+                        userId: user.id,
+                        currentlySaved: state.saved,
+                      );
+                    },
+                  ),
+                ]);
+              },
+            );
+          },
+        ),
       ),
 
       // Animated progress dots
@@ -439,7 +526,7 @@ class _GameCard extends StatelessWidget {
                     color: i == pageIdx ? game.glowColor : Colors.white24,
                     borderRadius: BorderRadius.circular(3),
                     boxShadow: i == pageIdx ? [
-                      BoxShadow(color: game.glowColor.withOpacity(0.6), blurRadius: 8, spreadRadius: 1),
+                      BoxShadow(color: game.glowColor.withValues(alpha: 0.6), blurRadius: 8, spreadRadius: 1),
                     ] : [],
                   ),
                 ).animate(key: ValueKey('dot_$i'))
@@ -454,11 +541,38 @@ class _GameCard extends StatelessWidget {
   List<Widget> _stars(double r) => List.generate(5, (i) =>
       Icon(i < r.floor() ? Icons.star : Icons.star_border,
           color: AppTheme.gold, size: 15));
+
+  void _showProfileRequired(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Create a profile first'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3D Game Preview with Neon Glow
 // ─────────────────────────────────────────────────────────────────────────────
+class _ShareBridge {
+  static const _channel = MethodChannel('scrollx_ai/share');
+
+  static Future<bool> shareGame(String gameName) async {
+    final text = 'Try $gameName on ScrollX_AI!';
+    try {
+      await _channel.invokeMethod<void>('shareText', {
+        'title': 'Share ScrollX_AI',
+        'text': text,
+      });
+      return true;
+    } catch (_) {
+      await Clipboard.setData(ClipboardData(text: text));
+      return false;
+    }
+  }
+}
+
 class _Neon3DGamePreview extends StatelessWidget {
   final String emoji;
   final Color glowColor;
@@ -477,9 +591,9 @@ class _Neon3DGamePreview extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: BoxDecoration(
-          color: glowColor.withOpacity(0.2),
+          color: glowColor.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: glowColor.withOpacity(0.5), width: 1.5),
+          border: Border.all(color: glowColor.withValues(alpha: 0.5), width: 1.5),
         ),
         child: Text(tag,
             style: TextStyle(
@@ -502,14 +616,14 @@ class _Neon3DGamePreview extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              glowColor.withOpacity(0.3),
-              Colors.black.withOpacity(0.4),
+              glowColor.withValues(alpha: 0.3),
+              Colors.black.withValues(alpha: 0.4),
             ],
           ),
-          border: Border.all(color: glowColor.withOpacity(0.6), width: 2),
+          border: Border.all(color: glowColor.withValues(alpha: 0.6), width: 2),
           boxShadow: [
-            BoxShadow(color: glowColor.withOpacity(0.4), blurRadius: 40, spreadRadius: 5),
-            BoxShadow(color: glowColor.withOpacity(0.2), blurRadius: 80, spreadRadius: 15),
+            BoxShadow(color: glowColor.withValues(alpha: 0.4), blurRadius: 40, spreadRadius: 5),
+            BoxShadow(color: glowColor.withValues(alpha: 0.2), blurRadius: 80, spreadRadius: 15),
           ],
         ),
         child: Stack(children: [
@@ -519,7 +633,7 @@ class _Neon3DGamePreview extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               gradient: RadialGradient(
                 colors: [
-                  glowColor.withOpacity(0.2),
+                  glowColor.withValues(alpha: 0.2),
                   Colors.transparent,
                 ],
               ),
@@ -532,7 +646,7 @@ class _Neon3DGamePreview extends StatelessWidget {
           ),
         ]),
       ).animate(onPlay: (controller) => controller.repeat())
-          .shimmer(duration: 2000.ms, color: glowColor.withOpacity(0.4))
+          .shimmer(duration: 2000.ms, color: glowColor.withValues(alpha: 0.4))
           .then()
           .shake(duration: 3000.ms, hz: 0.5, curve: Curves.easeInOut),
     ]);
@@ -562,13 +676,13 @@ class _NeonPlayButton extends StatelessWidget {
         height: 56,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [color, color.withOpacity(0.8)],
+            colors: [color, color.withValues(alpha: 0.8)],
           ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
           boxShadow: [
-            BoxShadow(color: glowColor.withOpacity(0.5), blurRadius: 20, spreadRadius: 2),
-            BoxShadow(color: glowColor.withOpacity(0.3), blurRadius: 40, spreadRadius: 5),
+            BoxShadow(color: glowColor.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 2),
+            BoxShadow(color: glowColor.withValues(alpha: 0.3), blurRadius: 40, spreadRadius: 5),
           ],
         ),
         child: const Row(
@@ -578,10 +692,10 @@ class _NeonPlayButton extends StatelessWidget {
             SizedBox(width: 8),
             Text('Play Now',
                 style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0,
                 )),
           ],
         ),
@@ -609,31 +723,39 @@ class _NeonActionBtn extends StatelessWidget {
   final String label;
   final Color color;
   final Color glowColor;
+  final VoidCallback onTap;
 
   const _NeonActionBtn({
     required this.icon,
     required this.label,
     required this.color,
     required this.glowColor,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.3),
-          border: Border.all(color: glowColor.withOpacity(0.4), width: 1.5),
-          boxShadow: [
-            BoxShadow(color: glowColor.withOpacity(0.2), blurRadius: 12, spreadRadius: 1),
-          ],
-        ),
-        child: Icon(icon, color: color, size: 22),
+      GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.3),
+            border: Border.all(color: glowColor.withValues(alpha: 0.4), width: 1.5),
+            boxShadow: [
+              BoxShadow(color: glowColor.withValues(alpha: 0.2), blurRadius: 12, spreadRadius: 1),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 22),
+        ).animate(onPlay: (controller) => controller.repeat())
+            .shimmer(duration: 2000.ms, color: glowColor.withValues(alpha: 0.3)),
       ).animate(onPlay: (controller) => controller.repeat())
-          .shimmer(duration: 2000.ms, color: glowColor.withOpacity(0.3)),
+          .scale(begin: const Offset(1, 1), end: const Offset(1.04, 1.04), duration: 900.ms)
+          .then()
+          .scale(begin: const Offset(1.04, 1.04), end: const Offset(1, 1), duration: 900.ms),
 
       const SizedBox(height: 6),
 
@@ -642,7 +764,7 @@ class _NeonActionBtn extends StatelessWidget {
             color: color,
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            shadows: [Shadow(color: glowColor.withOpacity(0.5), blurRadius: 4)],
+            shadows: [Shadow(color: glowColor.withValues(alpha: 0.5), blurRadius: 4)],
           )),
     ]);
   }
@@ -676,9 +798,9 @@ class _FloatingParticle extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.6),
+          color: color.withValues(alpha: 0.6),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.8), blurRadius: size * 2, spreadRadius: size / 2),
+            BoxShadow(color: color.withValues(alpha: 0.8), blurRadius: size * 2, spreadRadius: size / 2),
           ],
         ),
       ).animate(onPlay: (controller) => controller.repeat())
@@ -705,7 +827,7 @@ class _CyberGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = accent.withOpacity(0.08)
+      ..color = accent.withValues(alpha: 0.08)
       ..strokeWidth = 0.5
       ..style = PaintingStyle.stroke;
 
@@ -721,7 +843,7 @@ class _CyberGridPainter extends CustomPainter {
 
     // Glow dots at intersections (sparse)
     final dotPaint = Paint()
-      ..color = accent.withOpacity(0.3)
+      ..color = accent.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     for (double x = 0; x < size.width; x += 100) {

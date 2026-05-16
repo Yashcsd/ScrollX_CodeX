@@ -1,66 +1,170 @@
 // lib/services/firestore_service.dart
-//
-// This file is a PLACEHOLDER until you set up Firebase.
-// It compiles cleanly without the firebase packages.
-// When you are ready to add Firebase:
-//   1. Uncomment firebase packages in pubspec.yaml
-//   2. Run: flutter pub get
-//   3. Run: flutterfire configure
-//   4. Replace this file with the Firebase version below
-//
-// ═══════════════════════════════════════════════════════════════
-// FIREBASE VERSION (replace this whole file when ready):
-// ═══════════════════════════════════════════════════════════════
-//
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import '../models/user_model.dart';
-// import '../models/score_model.dart';
-//
-// class FirestoreService {
-//   final _db = FirebaseFirestore.instance;
-//   CollectionReference<Map<String,dynamic>> get _users  => _db.collection('users');
-//   CollectionReference<Map<String,dynamic>> get _scores => _db.collection('scores');
-//
-//   // CREATE
-//   Future<void> createUser(UserModel user) => _users.doc(user.id).set(user.toMap());
-//   Future<String> saveScore(ScoreModel s) async {
-//     final d = await _scores.add(s.toMap()); return d.id;
-//   }
-//
-//   // READ
-//   Future<UserModel?> getUser(String id) async {
-//     final d = await _users.doc(id).get();
-//     if (!d.exists) return null;
-//     return UserModel.fromMap(d.data()!, d.id);
-//   }
-//   Stream<List<UserModel>> leaderboardStream() => _users
-//       .orderBy('totalXp', descending: true).limit(50).snapshots()
-//       .map((s) => s.docs.map((d) => UserModel.fromMap(d.data(), d.id)).toList());
-//
-//   // UPDATE
-//   Future<void> updateUser(String id, Map<String,dynamic> data) =>
-//       _users.doc(id).update({...data, 'updatedAt': FieldValue.serverTimestamp()});
-//
-//   // DELETE
-//   Future<void> deleteScore(String id) => _scores.doc(id).delete();
-//   Future<void> deleteUser(String userId) async {
-//     final scores = await _scores.where('userId', isEqualTo: userId).get();
-//     final batch = _db.batch();
-//     for (final d in scores.docs) batch.delete(d.reference);
-//     batch.delete(_users.doc(userId));
-//     await batch.commit();
-//   }
-// }
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Stub class — keeps imports in other files from breaking
+import '../models/game_social_model.dart';
+import '../models/score_model.dart';
+import '../models/user_model.dart';
+
 class FirestoreService {
   FirestoreService();
-  // All methods are stubs — they do nothing until Firebase is connected
-  Future<void> createUser(dynamic user) async {}
-  Future<String> saveScore(dynamic score) async => '';
-  Future<dynamic> getUser(String id) async => null;
-  Stream<List<dynamic>> leaderboardStream() => const Stream.empty();
-  Future<void> updateUser(String id, Map<String, dynamic> data) async {}
-  Future<void> deleteScore(String id) async {}
-  Future<void> deleteUser(String id) async {}
+
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get _users =>
+      _db.collection('users');
+
+  CollectionReference<Map<String, dynamic>> get _scores =>
+      _db.collection('scores');
+
+  CollectionReference<Map<String, dynamic>> get _gameStats =>
+      _db.collection('game_stats');
+
+  Future<void> createUser(UserModel user) async {
+    await _users.doc(user.id).set(user.toMap(), SetOptions(merge: true));
+  }
+
+  Future<UserModel?> getUser(String id) async {
+    final doc = await _users.doc(id).get();
+    final data = doc.data();
+    if (!doc.exists || data == null) return null;
+    return UserModel.fromMap(data, doc.id);
+  }
+
+  Stream<List<UserModel>> leaderboardStream({int limit = 50}) {
+    return _users
+        .orderBy('totalXp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => UserModel.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  Future<void> updateUser(String id, Map<String, dynamic> data) async {
+    await _users.doc(id).set({
+      ...data,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<String> saveScore(ScoreModel score) async {
+    final doc = await _scores.add(score.toMap());
+    return doc.id;
+  }
+
+  Stream<GameSocialStats> gameStatsStream(String gameId) {
+    return _gameStats.doc(gameId).snapshots().map(
+          (doc) => GameSocialStats.fromMap(doc.data()),
+        );
+  }
+
+  Stream<GameUserSocialState> gameUserSocialStream({
+    required String gameId,
+    required String userId,
+  }) {
+    return _gameStats
+        .doc(gameId)
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((doc) => GameUserSocialState.fromMap(doc.data()));
+  }
+
+  Future<void> seedGameStats({
+    required String gameId,
+    required int plays,
+    required double rating,
+  }) async {
+    final doc = _gameStats.doc(gameId);
+    final likes = (plays * (rating / 10)).round();
+    final saves = (likes * 0.18).round();
+    final shares = (likes * 0.08).round();
+
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(doc);
+      if (snapshot.exists) return;
+
+      final now = DateTime.now().toIso8601String();
+      transaction.set(doc, {
+        'likes': likes,
+        'saves': saves,
+        'shares': shares,
+        'plays': plays,
+        'createdAt': now,
+        'updatedAt': now,
+      });
+    });
+  }
+
+  Future<void> incrementGamePlays(String gameId) {
+    return _gameStats.doc(gameId).set({
+      'plays': FieldValue.increment(1),
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> toggleGameLike({
+    required String gameId,
+    required String userId,
+    required bool currentlyLiked,
+  }) async {
+    final batch = _db.batch();
+    final gameRef = _gameStats.doc(gameId);
+    final userRef = gameRef.collection('users').doc(userId);
+
+    batch.set(gameRef, {
+      'likes': FieldValue.increment(currentlyLiked ? -1 : 1),
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+    batch.set(userRef, {
+      'liked': !currentlyLiked,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+
+    await batch.commit();
+  }
+
+  Future<void> toggleGameSave({
+    required String gameId,
+    required String userId,
+    required bool currentlySaved,
+  }) async {
+    final batch = _db.batch();
+    final gameRef = _gameStats.doc(gameId);
+    final userRef = gameRef.collection('users').doc(userId);
+
+    batch.set(gameRef, {
+      'saves': FieldValue.increment(currentlySaved ? -1 : 1),
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+    batch.set(userRef, {
+      'saved': !currentlySaved,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+
+    await batch.commit();
+  }
+
+  Future<void> incrementGameShares(String gameId) {
+    return _gameStats.doc(gameId).set({
+      'shares': FieldValue.increment(1),
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> deleteScore(String id) async {
+    await _scores.doc(id).delete();
+  }
+
+  Future<void> deleteUser(String userId) async {
+    final scores = await _scores.where('userId', isEqualTo: userId).get();
+    final batch = _db.batch();
+
+    for (final doc in scores.docs) {
+      batch.delete(doc.reference);
+    }
+    batch.delete(_users.doc(userId));
+
+    await batch.commit();
+  }
 }

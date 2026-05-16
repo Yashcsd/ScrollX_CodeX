@@ -1,30 +1,44 @@
-c// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gamereel_b/main.dart';
+import 'package:gamereel/core/app_theme.dart';
+import 'package:gamereel/models/user_model.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('level helpers map XP to the expected level band', () {
+    expect(AppConstants.levelNumber(0), 1);
+    expect(AppConstants.levelTitle(0), 'Newcomer');
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(AppConstants.levelNumber(500), 2);
+    expect(AppConstants.levelTitle(500), 'Rookie');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(AppConstants.levelNumber(4500), 10);
+    expect(AppConstants.levelTitle(4500), 'Puzzle God');
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('copyWith preserves existing fields and applies updates', () {
+    final user = UserModel(
+      id: 'u1',
+      username: 'Scroll',
+      avatarInitials: 'SC',
+      totalXp: 120,
+      gamesWon: 3,
+      gamesPlayed: 5,
+      bestScores: const {'slide_puzzle': 250},
+      badges: const ['First Game'],
+    );
+
+    final updated = user.copyWith(
+      username: 'ScrollX',
+      totalXp: 200,
+    );
+
+    expect(updated.id, 'u1');
+    expect(updated.username, 'ScrollX');
+    expect(updated.avatarInitials, 'SC');
+    expect(updated.totalXp, 200);
+    expect(updated.gamesWon, 3);
+    expect(updated.gamesPlayed, 5);
+    expect(updated.bestScores['slide_puzzle'], 250);
+    expect(updated.badges, contains('First Game'));
   });
 }
