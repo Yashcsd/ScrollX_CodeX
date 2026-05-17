@@ -13,6 +13,12 @@ const kTeal       = Color(0xFF1D9E75);
 const kCoral      = Color(0xFFD85A30);
 const kBlue       = Color(0xFF378ADD);
 const kPink       = Color(0xFFD4537E);
+const kHardShadow = BoxShadow(
+  color: Color(0xFFBBBAB0), // solid warm grey — no opacity
+  blurRadius: 0,
+  spreadRadius: 0,
+  offset: Offset(0, 4),
+);
 
 // ── Game screen gradient (yellow top → white bottom) ─────────────────────────
 const kGameGradient = LinearGradient(
@@ -30,13 +36,10 @@ class GameBackButton extends StatelessWidget {
     onTap: () => Navigator.pop(context),
     child: Container(
       width: 40, height: 40,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.12),
-              blurRadius: 8, offset: const Offset(0, 3)),
-        ],
+        boxShadow: [kHardShadow],
       ),
       child: const Icon(Icons.arrow_back_ios_new_rounded,
           color: kDark, size: 18),
@@ -56,9 +59,8 @@ class ScoreBadge extends StatelessWidget {
     decoration: BoxDecoration(
       color: kDark,
       borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        const BoxShadow(color: Color(0xFF000000), blurRadius: 0, offset: Offset(0, 3)),
-        BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 5)),
+      boxShadow: const [
+        BoxShadow(color: Color(0xFF0A0A0A), blurRadius: 0, offset: Offset(0, 4)),
       ],
     ),
     child: Text('$score $suffix',
@@ -84,10 +86,7 @@ class TimerBadge extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.08),
-              blurRadius: 6, offset: const Offset(0, 2)),
-        ],
+        boxShadow: const [kHardShadow],
       ),
       child: Text('${seconds}s',
           style: TextStyle(
@@ -153,7 +152,6 @@ class YellowButton extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(28)),
         boxShadow: [
           BoxShadow(color: kYellowDark, blurRadius: 0, offset: Offset(0, 5)),
-          BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 8)),
         ],
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -186,10 +184,7 @@ class OutlineButton extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: kBorder, width: 1.5),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06),
-              blurRadius: 6, offset: const Offset(0, 2)),
-        ],
+        boxShadow: const [kHardShadow],
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         if (icon != null) ...[
@@ -215,10 +210,7 @@ class GameCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(color: Colors.black.withOpacity(0.08),
-            blurRadius: 16, offset: const Offset(0, 6)),
-      ],
+      boxShadow: const [kHardShadow],
     ),
     child: child,
   );

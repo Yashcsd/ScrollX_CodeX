@@ -33,6 +33,7 @@ dependencies:
   cloud_firestore: ^6.3.0
   firebase_auth: ^6.4.0
   google_sign_in: ^6.2.1
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +49,25 @@ flutter:
   # 📁 Assets
   assets:
     - assets/images/ScrollX_Logo.png
+    - assets/icons/
+
+  fonts:
+    - family: National Park
+      fonts:
+        - asset: assets/fonts/NationalPark/static/NationalPark-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/NationalPark/static/NationalPark-Light.ttf
+          weight: 300
+        - asset: assets/fonts/NationalPark/static/NationalPark-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NationalPark/static/NationalPark-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NationalPark/static/NationalPark-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NationalPark/static/NationalPark-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NationalPark/static/NationalPark-ExtraBold.ttf
+          weight: 800
 
 # 🔥 ICON CONFIG (VERY IMPORTANT)
 flutter_launcher_icons:

@@ -8,7 +8,7 @@ import '../models/user_model.dart';
 import '../services/user_provider.dart';
 
 const _kYellow     = Color(0xFFE4D400);
-const _kYellowDark = Color(0xFF9A8A00);
+const _kYellowDark = Color(0xFFB89800); // solid mustard — no opacity
 const _kDark       = Color(0xFF1A1A1A);
 
 Color _ringColor(int rank) {
@@ -17,6 +17,26 @@ Color _ringColor(int rank) {
     case 2:  return const Color(0xFF00E5A0);
     case 3:  return const Color(0xFF00D4FF);
     default: return const Color(0xFF00D4FF);
+  }
+}
+
+// Solid background tint for avatar ring (no opacity)
+Color _ringBg(int rank) {
+  switch (rank) {
+    case 1:  return const Color(0xFFF5EE80); // pale yellow
+    case 2:  return const Color(0xFF80F5D0); // pale teal
+    case 3:  return const Color(0xFF80EEFF); // pale blue
+    default: return const Color(0xFFE8F8FF); // very pale blue
+  }
+}
+
+// Solid shadow for avatar ring (no opacity)
+Color _ringShadow(int rank) {
+  switch (rank) {
+    case 1:  return const Color(0xFFB89800); // dark mustard
+    case 2:  return const Color(0xFF008A60); // dark teal
+    case 3:  return const Color(0xFF0088AA); // dark blue
+    default: return const Color(0xFF0088AA);
   }
 }
 
@@ -151,25 +171,19 @@ class _HeroCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          // Hard 3-D depth
-          const BoxShadow(
+        boxShadow: const [
+          // Hard 3-D depth — solid mustard, no opacity
+          BoxShadow(
             color: _kYellowDark,
             blurRadius: 0,
             offset: Offset(0, 7),
-          ),
-          // Soft ambient
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Column(children: [
         // ── Profile row ───────────────────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+          padding: const EdgeInsets.fromLTRB(20, 25, 16, 25),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -196,13 +210,7 @@ class _HeroCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: _kDark,
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                        boxShadow: const [AppTheme.hardShadowSmall],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -246,18 +254,7 @@ class _HeroCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
                   color: _kYellow,
-                  boxShadow: [
-                    BoxShadow(
-                      color: _kYellow.withOpacity(0.5),
-                      blurRadius: 14,
-                      spreadRadius: 2,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.18),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: const [AppTheme.hardShadowSmall],
                 ),
                 child: Center(
                   child: Text(
@@ -274,47 +271,41 @@ class _HeroCard extends StatelessWidget {
           ),
         ),
 
-        // ── Stats bar — black rounded bottom ──────────────────────────────
-        Container(
-          decoration: BoxDecoration(
-            color: _kDark,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(28),
-              bottomRight: Radius.circular(28),
+        // ── Stats bar — full capsule, content-width with padding ─────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: _kDark,
+              borderRadius: BorderRadius.circular(999), // full capsule
+              boxShadow: const [AppTheme.hardShadowSmall],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _StatItem(
-                icon: '⚡',
-                label: topUser != null
-                    ? _fmtXp(topUser!.totalXp)
-                    : '50k XP',
-              ),
-              _vLine(),
-              _StatItem(
-                icon: '🎮',
-                label: topUser != null
-                    ? '${topUser!.gamesPlayed} Played'
-                    : '500 Played',
-              ),
-              _vLine(),
-              _StatItem(
-                icon: '🏆',
-                label: topUser != null
-                    ? '${topUser!.gamesWon} Win'
-                    : '458 Win',
-              ),
-            ],
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _StatItem(
+                  icon: Icons.bolt_rounded,
+                  label: topUser != null
+                      ? _fmtXp(topUser!.totalXp)
+                      : '50k XP',
+                ),
+                _vLine(),
+                _StatItem(
+                  icon: Icons.sports_esports_rounded,
+                  label: topUser != null
+                      ? '${topUser!.gamesPlayed} Played'
+                      : '500 Played',
+                ),
+                _vLine(),
+                _StatItem(
+                  icon: Icons.emoji_events_rounded,
+                  label: topUser != null
+                      ? '${topUser!.gamesWon} Win'
+                      : '458 Win',
+                ),
+              ],
+            ),
           ),
         ),
       ]),
@@ -324,20 +315,21 @@ class _HeroCard extends StatelessWidget {
   Widget _vLine() => Container(
     width: 1,
     height: 24,
-    color: Colors.white.withOpacity(0.12),
+    color: const Color(0xFF444444), // solid dark divider — no opacity
   );
 }
 
 class _StatItem extends StatelessWidget {
-  final String icon, label;
+  final IconData icon;
+  final String label;
   const _StatItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(icon, style: const TextStyle(fontSize: 15)),
-      const SizedBox(width: 6),
+      Icon(icon, color: _kYellow, size: 16),
+      const SizedBox(width: 5),
       Text(label,
           style: const TextStyle(
             color: Colors.white,
@@ -376,7 +368,7 @@ class _FilterPill extends StatelessWidget {
         border: Border.all(
           color: active
               ? _kYellowDark
-              : const Color(0xFFCCBB00).withOpacity(0.5),
+              : const Color(0xFFCCBB00),
           width: 1.5,
         ),
         boxShadow: active
@@ -386,17 +378,12 @@ class _FilterPill extends StatelessWidget {
                   blurRadius: 0,
                   offset: Offset(0, 4),
                 ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.12),
-                  blurRadius: 10,
-                  offset: const Offset(0, 6),
-                ),
               ]
             : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+                const BoxShadow(
+                  color: Color(0xFFCCCBC0), // solid warm grey
+                  blurRadius: 0,
+                  offset: Offset(0, 3),
                 ),
               ],
       ),
@@ -453,39 +440,37 @@ class _RankTileState extends State<_RankTile> {
         duration: const Duration(milliseconds: 100),
         child: Container(
           margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
             color: widget.isMe
                 ? const Color(0xFFFFFBCC)
-                : const Color(0xFFF5F5F5),
+                : const Color(0xFFF8F8F4), // lighter warm surface
             borderRadius: BorderRadius.circular(20),
             border: widget.isMe
-                ? Border.all(
-                    color: _kYellow.withOpacity(0.6),
-                    width: 1.5)
+                ? Border.all(color: _kYellow, width: 1.5)
                 : null,
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: Color(0xFFDDDCCC), // very subtle warm grey — barely visible
+                blurRadius: 0,
+                offset: Offset(0, 1), // reduced from 3 to 1
               ),
             ],
           ),
           child: Row(children: [
-            // Glow ring avatar
+            // Glow ring avatar — stronger border
             Container(
-              width: 48,
-              height: 48,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: ring, width: 2.5),
-                color: ring.withOpacity(0.12),
+                border: Border.all(color: ring, width: 3),
+                color: _ringBg(widget.rank),
                 boxShadow: [
                   BoxShadow(
-                    color: ring.withOpacity(0.35),
-                    blurRadius: 8,
-                    spreadRadius: 1,
+                    color: _ringShadow(widget.rank),
+                    blurRadius: 0,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -493,7 +478,7 @@ class _RankTileState extends State<_RankTile> {
                 child: Text(
                   widget.user.avatarInitials,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: _kDark,
                   ),
@@ -523,8 +508,8 @@ class _RankTileState extends State<_RankTile> {
                   child: Text(
                     '@${widget.user.username}',
                     style: const TextStyle(
-                      color: Color(0xFF999999),
-                      fontSize: 13,
+                      color: Color(0xFF888888),
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -534,10 +519,10 @@ class _RankTileState extends State<_RankTile> {
                   const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                        horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: _kDark,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
                       'You',
@@ -552,18 +537,18 @@ class _RankTileState extends State<_RankTile> {
               ]),
             ),
 
-            // XP badge — black + yellow text
+            // XP pill — pure black + yellow text, tighter
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 6),
+                  horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _kDark,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.22),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
+                    color: Color(0xFF0A0A0A), // solid near-black
+                    blurRadius: 0,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
@@ -571,7 +556,7 @@ class _RankTileState extends State<_RankTile> {
                 _fmtXp(widget.user.totalXp),
                 style: const TextStyle(
                   color: _kYellow,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -584,7 +569,7 @@ class _RankTileState extends State<_RankTile> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Empty state
+// Empty state — illustrated game-style
 // ─────────────────────────────────────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
@@ -597,19 +582,14 @@ class _EmptyState extends StatelessWidget {
         Container(
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white,
+          decoration: const BoxDecoration(
+            color: _kYellow,
             shape: BoxShape.circle,
             boxShadow: [
-              const BoxShadow(
-                color: _kYellowDark,
+              BoxShadow(
+                color: _kYellowDark, // solid mustard — no opacity
                 blurRadius: 0,
                 offset: Offset(0, 5),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 14,
-                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -628,8 +608,13 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Play games to appear on the leaderboard.',
+          '⚡ Build your XP to rise here',
           style: TextStyle(color: Color(0xFF666666), fontSize: 13),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '🎮 Play games to appear on the leaderboard',
+          style: TextStyle(color: Color(0xFF888888), fontSize: 12),
         ),
       ],
     ),

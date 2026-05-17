@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -60,7 +60,9 @@ class _TypingSpeedScreenState extends State<TypingSpeedScreen> {
         if (word == correct) _score += 10;
         else _errors++;
         _currentIdx++;
-        if (_currentIdx >= _wordList.length) { _wordList = [..._wordList, ..._words..shuffle()]; }
+        if (_currentIdx >= _wordList.length) {
+          _wordList = [..._wordList, ..._words..shuffle()];
+        }
       });
       _ctrl.clear();
     }
@@ -78,84 +80,113 @@ class _TypingSpeedScreenState extends State<TypingSpeedScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     resizeToAvoidBottomInset: true,
+    backgroundColor: Colors.white,
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF1A1A35), Color(0xFF2D1B69)])),
-      child: SafeArea(child: Stack(children: [
-        Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Typing Speed', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('$_timeLeft s', style: TextStyle(
-                color: _timeLeft > 20 ? AppTheme.teal : _timeLeft > 10 ? AppTheme.gold : AppTheme.coral,
-                fontSize: 14, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 12),
-              Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
-          const SizedBox(height: 12),
-          ClipRRect(borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: _timeLeft / 60,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent), minHeight: 4)),
-          const SizedBox(height: 16),
-          // Word display
-          Container(margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white12)),
-            child: Wrap(spacing: 8, runSpacing: 8,
-              children: List.generate(min(15, _wordList.length - _currentIdx), (i) {
-                final idx = _currentIdx + i;
-                return Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: i == 0 ? AppTheme.accent.withOpacity(0.25) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: i == 0 ? Border.all(color: AppTheme.accent.withOpacity(0.6)) : null),
-                  child: Text(_wordList[idx],
-                    style: TextStyle(color: i == 0 ? Colors.white : AppTheme.textSec, fontSize: 16,
-                      fontWeight: i == 0 ? FontWeight.w700 : FontWeight.w400)));
-              }))),
-          const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('Words: $_currentIdx  ', style: const TextStyle(color: AppTheme.teal, fontSize: 12)),
-            Text('Errors: $_errors', style: const TextStyle(color: AppTheme.coral, fontSize: 12)),
-          ]),
-          const Spacer(),
-          Padding(padding: const EdgeInsets.fromLTRB(16,0,16,16),
-            child: TextField(
-              controller: _ctrl,
-              focusNode: _focus,
-              autofocus: true,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-              decoration: InputDecoration(
-                hintText: _started ? 'Keep typing…' : 'Start typing to begin!',
-                hintStyle: const TextStyle(color: AppTheme.textMuted),
-                filled: true, fillColor: Colors.white10,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppTheme.accent, width: 1.5)),
+      decoration: const BoxDecoration(gradient: kGameGradient),
+      child: Stack(children: [
+        SafeArea(
+          bottom: false,
+          child: Column(children: [
+            GameHeader(title: '⌨️ Typing Speed', actions: [ScoreBadge(score: _score)]),
+            const SizedBox(height: 8),
+            // Timer + progress
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GameProgressBar(
+                value: _timeLeft / 60,
+                color: _timeLeft > 20 ? kTeal : _timeLeft > 10 ? kYellow : kCoral,
               ),
-            )),
-        ]),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(children: [
+                Expanded(child: GameCard(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(children: [
+                    const Text('TIME', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                    Text('$_timeLeft s', style: TextStyle(
+                      color: _timeLeft > 20 ? kTeal : _timeLeft > 10 ? kYellow : kCoral,
+                      fontSize: 20, fontWeight: FontWeight.w900)),
+                  ]),
+                )),
+                const SizedBox(width: 12),
+                Expanded(child: GameCard(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(children: [
+                    const Text('ERRORS', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                    Text('$_errors', style: const TextStyle(color: kCoral, fontSize: 20, fontWeight: FontWeight.w900)),
+                  ]),
+                )),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            // Word display
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: GameCard(
+                padding: const EdgeInsets.all(14),
+                child: Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: List.generate(min(15, _wordList.length - _currentIdx), (i) {
+                    final idx = _currentIdx + i;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: i == 0 ? kYellow : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: i == 0 ? Border.all(color: kYellowDark) : null,
+                      ),
+                      child: Text(_wordList[idx],
+                        style: TextStyle(
+                          color: i == 0 ? kDark : kTextSec,
+                          fontSize: 15,
+                          fontWeight: i == 0 ? FontWeight.w800 : FontWeight.w400,
+                        )),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: TextField(
+                controller: _ctrl,
+                focusNode: _focus,
+                autofocus: true,
+                style: const TextStyle(color: kDark, fontSize: 18, fontWeight: FontWeight.w600),
+                decoration: InputDecoration(
+                  hintText: _started ? 'Keep typing…' : 'Start typing to begin!',
+                  hintStyle: const TextStyle(color: kTextMuted),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: kBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: kYellow, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: kBorder),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
         if (_showResult) GameResultOverlay(
           score: _score, xpEarned: _score >= 150 ? 120 : 20, won: _score >= 150,
           onContinue: () => Navigator.pop(context),
           onRetry: () => setState(() {
-            _score=0; _errors=0; _timeLeft=60; _currentIdx=0;
-            _started=false; _showResult=false; _ctrl.clear();
+            _score = 0; _errors = 0; _timeLeft = 60; _currentIdx = 0;
+            _started = false; _showResult = false; _ctrl.clear();
           }),
         ),
-      ])),
+      ]),
     ),
   );
 }
-
-

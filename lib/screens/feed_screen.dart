@@ -291,18 +291,99 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PageView.builder(
-    controller: _ctrl,
-    scrollDirection: Axis.vertical,
-    itemCount: null,
-    itemBuilder: (_, i) {
-      final idx = i % allFeedGames.length;
-      return _FeedCard(
-        game:    allFeedGames[idx],
-        onPlay:  () => _play(allFeedGames[idx]),
+  Widget build(BuildContext context) {
+    final user = context.watch<UserProvider>().user;
+
+    return Stack(children: [
+      PageView.builder(
+        controller: _ctrl,
+        scrollDirection: Axis.vertical,
+        itemCount: null,
+        itemBuilder: (_, i) {
+          final idx = i % allFeedGames.length;
+          return _FeedCard(
+            game: allFeedGames[idx],
+            onPlay: () => _play(allFeedGames[idx]),
+          );
+        },
+      ),
+      SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Row(children: [
+            const _ScrollXBrandBadge(),
+            const Spacer(),
+            if (user != null) _FeedXpPill(xp: user.totalXp),
+          ]),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _ScrollXBrandBadge extends StatelessWidget {
+  const _ScrollXBrandBadge();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: const [AppTheme.hardShadowSmall],
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: RichText(
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+              children: [
+                TextSpan(text: 'Scroll', style: TextStyle(color: Colors.white)),
+                TextSpan(
+                  text: 'X',
+                  style: TextStyle(color: AppTheme.consoleYellow),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
-    },
-  );
+}
+
+class _FeedXpPill extends StatelessWidget {
+  final int xp;
+  const _FeedXpPill({required this.xp});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(16),
+          
+        ),
+        child: Row(children: [
+          const Text('⚡', style: TextStyle(fontSize: 12)),
+          const SizedBox(width: 4),
+          Text(
+            '$xp XP',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ]),
+      );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -321,163 +402,139 @@ class _FeedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad = MediaQuery.of(context).padding.bottom + 80;
-    final user = context.watch<UserProvider>().user;
+    final screenSize  = MediaQuery.of(context).size;
+    final topPad      = MediaQuery.of(context).padding.top;
+    final bottomPad   = 20;
+    context.watch<UserProvider>(); // keep provider alive for XP updates
+
+    // Poster: square, 80% of screen width, 25% border radius
+    final posterSize  = screenSize.width * 0.80;
+    final posterRadius = posterSize * 0.25;
+
+    // How much vertical space the bottom info block needs (approx)
+    const infoHeight  = 165.0; // user row + desc + play button
+    const navHeight   = 82.0;  // dock + shadow
+
+    // Centre the poster vertically in the remaining space above the info block
+    final availableH  = screenSize.height - topPad - navHeight - bottomPad - infoHeight;
+    final posterTop   = topPad + (availableH - posterSize) / 2;
+
+    // Bottom info sits just above the nav bar
+    final infoBottom  = bottomPad + navHeight + 35;
 
     return Stack(children: [
-      // Full-screen gradient background
-      Container(
-        decoration: BoxDecoration(gradient: game.gradient),
-      ),
+      // ── Full-screen gradient background ───────────────────────────────
+      Container(decoration: BoxDecoration(gradient: game.gradient)),
 
-      // Top bar — ScrollX logo pill
-      SafeArea(
+      // ── Top bar ────────────────────────────────────────────────────────
+      const SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+          padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
           child: Row(children: [
-            // ScrollX pill logo
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Text(
-                'ScrollX',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-            const Spacer(),
-            // XP pill
-            if (user != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(children: [
-                  const Text('⚡', style: TextStyle(fontSize: 12)),
-                  const SizedBox(width: 4),
-                  Text('${user.totalXp} XP',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700)),
-                ]),
-              ),
+            SizedBox.shrink(),
+            Spacer(),
           ]),
         ),
       ),
 
-      // Right side actions (TikTok style)
+      // ── Game poster — centred square ───────────────────────────────────
       Positioned(
-        right: 12,
-        bottom: bottomPad + 80,
+        left: (screenSize.width - posterSize) / 2,
+        top: posterTop.clamp(topPad + 60.0, screenSize.height * 0.5),
+        child: Container(
+          width: posterSize,
+          height: posterSize,
+          decoration: BoxDecoration(
+            gradient: game.gradient,
+            borderRadius: BorderRadius.circular(posterRadius),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.35),
+              width: 2,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xFF1A1A1A), // solid dark — 3px hard shadow
+                blurRadius: 0,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Stack(children: [
+            // Large emoji centred
+            Center(
+              child: Text(
+                game.emoji,
+                style: TextStyle(fontSize: posterSize * 0.30),
+              ),
+            ),
+            // Tag badge top-left
+            Positioned(
+              top: 14, left: 14,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  game.tag,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+
+      // ── Right side actions ─────────────────────────────────────────────
+      Positioned(
+        right: 20,
+        bottom: infoBottom + 40,
         child: Column(children: [
-          _SideAction(
-            icon: Icons.favorite_rounded,
-            label: _fmt(game.likes),
-            color: Colors.white,
-          ),
+          _SideAction(icon: Icons.favorite_rounded,   label: _fmt(game.likes),    color: Colors.white),
           const SizedBox(height: 20),
-          _SideAction(
-            icon: Icons.chat_bubble_rounded,
-            label: _fmt(game.comments),
-            color: Colors.white,
-          ),
+          _SideAction(icon: Icons.chat_bubble_rounded, label: _fmt(game.comments), color: Colors.white),
           const SizedBox(height: 20),
-          _SideAction(
-            icon: Icons.near_me_rounded,
-            label: _fmt(game.shares),
-            color: Colors.white,
-          ),
+          _SideAction(icon: Icons.near_me_rounded,    label: _fmt(game.shares),   color: Colors.white),
           const SizedBox(height: 20),
-          _SideAction(
-            icon: Icons.more_horiz_rounded,
-            label: '',
-            color: Colors.white,
-          ),
+          _SideAction(icon: Icons.more_horiz_rounded, label: '',                  color: Colors.white),
         ]),
       ),
 
-      // Bottom info + play button
+      // ── Bottom info + play button ──────────────────────────────────────
+      // Order: play button → your.game row → description
+      // Bottom of description sits 16px above the nav bar.
       Positioned(
         left: 0, right: 0,
-        bottom: bottomPad,
+        bottom: infoBottom + 20,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User row
-              Row(children: [
-                Container(
-                  width: 36, height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Center(
-                    child: Text(game.emoji,
-                        style: const TextStyle(fontSize: 18)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'your.game',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Icon(Icons.verified_rounded,
-                    color: Colors.white, size: 16),
-              ]),
-              const SizedBox(height: 8),
-              // Description
-              Text(
-                game.description,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 13,
-                  height: 1.4,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 14),
-              // Play button
+              // 1 — Play button
               GestureDetector(
                 onTap: onPlay,
                 child: Container(
                   height: 52,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: const [AppTheme.hardShadowSmall],
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 32, height: 32,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppTheme.primary,
                           shape: BoxShape.circle,
                         ),
@@ -496,6 +553,42 @@ class _FeedCard extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 12),
+              // 2 — your.game row
+              Row(children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Center(
+                    child: Text(game.emoji,
+                        style: const TextStyle(fontSize: 18)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'your.game',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.verified_rounded,
+                    color: Colors.white, size: 16),
+              ]),
+              const SizedBox(height: 6),
+              // 3 — Description (subtext)
+              Text(
+                game.description,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 13, height: 1.4),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
