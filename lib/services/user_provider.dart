@@ -1,57 +1,67 @@
 // lib/services/user_provider.dart
-// 100% offline — uses SharedPreferences only.
-// No Firebase import here. Add Firebase later in firestore_service.dart.
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/score_model.dart';
 import '../models/user_model.dart';
 import '../core/app_theme.dart';
 import 'firestore_service.dart';
+import 'session_manager.dart';
 
 class UserProvider extends ChangeNotifier {
-  final _uuid = const Uuid();
+  final _uuid      = const Uuid();
   final _firestore = FirestoreService();
 
   UserModel? _user;
-  bool       _loading = false;
+  bool       _loading       = true;
+  bool       _sessionActive = false;
   String?    _error;
 
-  UserModel? get user       => _user;
-  bool       get isLoading  => _loading;
-  String?    get error      => _error;
-  bool       get isLoggedIn => _user != null;
+  UserModel? get user        => _user;
+  bool       get isLoading   => _loading;
+  String?    get error       => _error;
+
+  /// Single gate: true only when session_v2 is set AND profile loaded
+  bool get isLoggedIn => _sessionActive && _user != null;
 
   Stream<List<UserModel>> leaderboardStream() =>
       _firestore.leaderboardStream();
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // READ: Boot app — load saved user from device storage
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── initialize ────────────────────────────────────────────────────────────
   Future<void> initialize() async {
     _loading = true;
     notifyListeners();
 
     try {
-      final prefs   = await SharedPreferences.getInstance();
-      final savedId = prefs.getString('user_id');
+      _sessionActive = await SessionManager.isSessionActive();
 
-      if (savedId != null && savedId.isNotEmpty) {
-        _user = UserModel(
-          id:             savedId,
-          username:       prefs.getString('username')       ?? 'Player',
-          avatarInitials: prefs.getString('avatarInitials') ?? 'PL',
-          totalXp:        prefs.getInt('totalXp')           ?? 0,
-          gamesWon:       prefs.getInt('gamesWon')          ?? 0,
-          gamesPlayed:    prefs.getInt('gamesPlayed')       ?? 0,
-          bestScores:     _parseBestScores(
-              prefs.getString('bestScores') ?? ''),
-          badges:         _parseBadges(
-              prefs.getString('badges') ?? ''),
-        );
-        unawaited(_syncUserToFirestore(_user!));
+      if (_sessionActive) {
+        final prefs   = await SharedPreferences.getInstance();
+        final savedId = prefs.getString('user_id');
+
+        if (savedId != null && savedId.isNotEmpty) {
+          _user = UserModel(
+            id:             savedId,
+            username:       prefs.getString('username')       ?? 'Player',
+            avatarInitials: prefs.getString('avatarInitials') ?? 'PL',
+            totalXp:        prefs.getInt('totalXp')           ?? 0,
+            gamesWon:       prefs.getInt('gamesWon')          ?? 0,
+            gamesPlayed:    prefs.getInt('gamesPlayed')       ?? 0,
+            bestScores:     _parseBestScores(
+                prefs.getString('bestScores') ?? ''),
+            badges:         _parseBadges(
+                prefs.getString('badges') ?? ''),
+          );
+          unawaited(_syncUserToFirestore(_user!));
+        } else {
+          // session flag set but no profile — reset to onboarding
+          _sessionActive = false;
+          await SessionManager.clearSession();
+        }
       }
     } catch (e) {
       _error = e.toString();
@@ -62,9 +72,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // CREATE: register a brand-new user
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── createUser ────────────────────────────────────────────────────────────
   Future<void> createUser(String username) async {
     if (username.trim().isEmpty) return;
     _loading = true;
@@ -72,18 +80,21 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final id = _uuid.v4();
-      final initials = username.trim().length >= 2
-          ? username.trim().substring(0, 2).toUpperCase()
-          : username.trim().toUpperCase();
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      final id = firebaseUser?.uid ?? _uuid.v4();
 
-      _user = UserModel(
-          id: id,
-          username: username.trim(),
-          avatarInitials: initials);
+      final name     = username.trim();
+      final initials = name.length >= 2
+          ? name.substring(0, 2).toUpperCase()
+          : name.toUpperCase();
 
-      await _persist(_user!);
-      await _syncUserToFirestore(_user!);
+      _user = UserModel(id: id, username: name, avatarInitials: initials);
+
+      await _persistProfile(_user!);
+      await SessionManager.markSessionActive();
+      _sessionActive = true;
+
+      unawaited(_syncUserToFirestore(_user!));
     } catch (e) {
       _error = e.toString();
       debugPrint('UserProvider.createUser error: $e');
@@ -93,26 +104,22 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // UPDATE: change username
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── updateProfile ─────────────────────────────────────────────────────────
   Future<void> updateProfile(String newUsername) async {
     if (_user == null || newUsername.trim().isEmpty) return;
 
-    final initials = newUsername.trim().length >= 2
-        ? newUsername.trim().substring(0, 2).toUpperCase()
-        : newUsername.trim().toUpperCase();
+    final name     = newUsername.trim();
+    final initials = name.length >= 2
+        ? name.substring(0, 2).toUpperCase()
+        : name.toUpperCase();
 
-    _user = _user!.copyWith(
-        username: newUsername.trim(), avatarInitials: initials);
-    await _persist(_user!);
-    await _syncUserToFirestore(_user!);
+    _user = _user!.copyWith(username: name, avatarInitials: initials);
+    await _persistProfile(_user!);
+    unawaited(_syncUserToFirestore(_user!));
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // UPDATE: called after every game session
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── recordGameResult ──────────────────────────────────────────────────────
   Future<void> recordGameResult({
     required String gameId,
     required String gameName,
@@ -133,12 +140,10 @@ class UserProvider extends ChangeNotifier {
       newWins += 1;
     }
 
-    // Update best score for this game
     if (!newBest.containsKey(gameId) || newBest[gameId]! < score) {
       newBest[gameId] = score;
     }
 
-    // Unlock badges
     void give(String b) { if (!badges.contains(b)) badges.add(b); }
     if (newPlayed == 1)                           give('First Game 🎮');
     if (newWins  >= 5)                            give('5 Wins 🏅');
@@ -151,47 +156,42 @@ class UserProvider extends ChangeNotifier {
     if (gameId == 'color_match'  && score >= 400) give('Color Master 🎨');
 
     _user = _user!.copyWith(
-      totalXp:    newXp,
-      gamesWon:   newWins,
+      totalXp:     newXp,
+      gamesWon:    newWins,
       gamesPlayed: newPlayed,
-      bestScores: newBest,
-      badges:     badges,
+      bestScores:  newBest,
+      badges:      badges,
     );
 
-    await _persist(_user!);
-    await _syncUserToFirestore(_user!);
-    await _saveScoreToFirestore(
-      gameId: gameId,
-      gameName: gameName,
-      score: score,
-      timeTakenSeconds: timeTakenSeconds,
-    );
+    await _persistProfile(_user!);
+    unawaited(_syncUserToFirestore(_user!));
+    unawaited(_saveScoreToFirestore(
+      gameId: gameId, gameName: gameName,
+      score: score, timeTakenSeconds: timeTakenSeconds,
+    ));
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // DELETE: wipe everything from device
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── deleteAccount ─────────────────────────────────────────────────────────
   Future<void> deleteAccount() async {
     final deletedId = _user?.id;
     try {
+      await SessionManager.clearSession();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      if (deletedId != null) {
-        await _firestore.deleteUser(deletedId);
-      }
+      if (deletedId != null) await _firestore.deleteUser(deletedId);
+      await FirebaseAuth.instance.signOut();
     } catch (e) {
       debugPrint('UserProvider.deleteAccount error: $e');
     }
-    _user = null;
+    _user          = null;
+    _sessionActive = false;
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Internal helpers
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── private helpers ───────────────────────────────────────────────────────
 
-  Future<void> _persist(UserModel u) async {
+  Future<void> _persistProfile(UserModel u) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_id',       u.id);
     await prefs.setString('username',       u.username);
@@ -199,10 +199,8 @@ class UserProvider extends ChangeNotifier {
     await prefs.setInt('totalXp',           u.totalXp);
     await prefs.setInt('gamesWon',          u.gamesWon);
     await prefs.setInt('gamesPlayed',       u.gamesPlayed);
-    // Encode Map<String,int> as "key1:100,key2:200"
     await prefs.setString('bestScores',
         u.bestScores.entries.map((e) => '${e.key}:${e.value}').join(','));
-    // Encode badges as pipe-separated
     await prefs.setString('badges', u.badges.join('|'));
   }
 
@@ -230,21 +228,16 @@ class UserProvider extends ChangeNotifier {
   Future<void> _saveScoreToFirestore({
     required String gameId,
     required String gameName,
-    required int score,
-    required int timeTakenSeconds,
+    required int    score,
+    required int    timeTakenSeconds,
   }) async {
-    final currentUser = _user;
-    if (currentUser == null) return;
-
+    final u = _user;
+    if (u == null) return;
     try {
       await _firestore.saveScore(ScoreModel(
-        id: '',
-        userId: currentUser.id,
-        username: currentUser.username,
-        gameId: gameId,
-        gameName: gameName,
-        score: score,
-        timeTakenSeconds: timeTakenSeconds,
+        id: '', userId: u.id, username: u.username,
+        gameId: gameId, gameName: gameName,
+        score: score, timeTakenSeconds: timeTakenSeconds,
       ));
     } catch (e) {
       debugPrint('UserProvider._saveScoreToFirestore error: $e');

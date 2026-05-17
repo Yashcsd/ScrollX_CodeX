@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -15,17 +15,12 @@ class MathBlitzScreen extends StatefulWidget {
 
 class _MathBlitzScreenState extends State<MathBlitzScreen> {
   final _rng = Random();
-  int _a = 0, _b = 0;
+  int _a = 0, _b = 0, _correct = 0, _score = 0, _streak = 0, _timeLeft = 60;
   String _op = '+';
-  int _correct = 0;
   List<int> _options = [];
-  int _score = 0;
-  int _streak = 0;
-  int _timeLeft = 60;
-  bool _gameOver = false;
-  bool _showResult = false;
+  bool _gameOver = false, _showResult = false;
   Timer? _timer;
-  String? _feedback; // '✓' or '✗'
+  String? _feedback;
 
   @override
   void initState() { super.initState(); _nextQ(); _startTimer(); }
@@ -48,9 +43,7 @@ class _MathBlitzScreenState extends State<MathBlitzScreen> {
       default:  _a = _rng.nextInt(12)+1; _b = _rng.nextInt(12)+1; _correct = _a*_b;
     }
     final opts = {_correct};
-    while (opts.length < 4) {
-      opts.add(_correct + _rng.nextInt(21) - 10);
-    }
+    while (opts.length < 4) opts.add(_correct + _rng.nextInt(21) - 10);
     _options = opts.toList()..shuffle();
   }
 
@@ -60,7 +53,7 @@ class _MathBlitzScreenState extends State<MathBlitzScreen> {
     setState(() {
       _feedback = ok ? '✓' : '✗';
       if (ok) { _streak++; _score += 10 + (_streak * 2); }
-      else { _streak = 0; }
+      else _streak = 0;
     });
     Future.delayed(const Duration(milliseconds: 350), () {
       setState(() { _feedback = null; _nextQ(); });
@@ -78,81 +71,77 @@ class _MathBlitzScreenState extends State<MathBlitzScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.white,
     body: Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFF1A2744), Color(0xFF0D4F3C)])),
-      child: SafeArea(child: Stack(children: [
-        Column(children: [
-          // Header
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Math Blitz', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(color: AppTheme.gold.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20), border: Border.all(color: AppTheme.gold.withOpacity(0.4))),
-                child: Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700, fontSize: 14))),
-            ])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
+      child: Stack(children: [
+        SafeArea(bottom: false, child: Column(children: [
+          GameHeader(title: '➕ Math Blitz', actions: [ScoreBadge(score: _score)]),
           const SizedBox(height: 16),
-          // Timer bar
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Row(children: [
+                const Text('🔥 Streak: ', style: TextStyle(color: kTextSec, fontSize: 13)),
+                Text('$_streak', style: const TextStyle(color: kCoral, fontSize: 13, fontWeight: FontWeight.w800)),
+              ]),
+              TimerBadge(seconds: _timeLeft, total: 60),
+            ]),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GameProgressBar(value: _timeLeft / 60,
+              color: _timeLeft > 20 ? kTeal : _timeLeft > 10 ? kYellow : kCoral),
+          ),
+          const Spacer(),
+          GameCard(
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
             child: Column(children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Streak: $_streak 🔥', style: const TextStyle(color: AppTheme.teal, fontSize: 12, fontWeight: FontWeight.w600)),
-                  Text('$_timeLeft s', style: TextStyle(
-                    color: _timeLeft > 20 ? AppTheme.teal : _timeLeft > 10 ? AppTheme.gold : AppTheme.coral,
-                    fontSize: 14, fontWeight: FontWeight.w700)),
-                ]),
-              const SizedBox(height: 6),
-              ClipRRect(borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(value: _timeLeft / 60,
-                  backgroundColor: Colors.white10,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _timeLeft > 20 ? AppTheme.teal : _timeLeft > 10 ? AppTheme.gold : AppTheme.coral),
-                  minHeight: 6)),
-            ])),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Text('$_a $_op $_b = ?',
+                  key: ValueKey('$_a$_op$_b'),
+                  style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900, color: kDark)),
+              ),
+              if (_feedback != null) ...[
+                const SizedBox(height: 12),
+                Text(_feedback!, style: TextStyle(
+                  fontSize: 32, color: _feedback == '✓' ? kTeal : kCoral,
+                  fontWeight: FontWeight.w900)),
+              ],
+            ]),
+          ),
           const Spacer(),
-          // Question
-          AnimatedSwitcher(duration: const Duration(milliseconds: 200),
-            child: Text('$_a $_op $_b = ?',
-              key: ValueKey('$_a$_op$_b'),
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: Colors.white))),
-          if (_feedback != null)
-            Text(_feedback!, style: TextStyle(
-              fontSize: 40, color: _feedback == '✓' ? AppTheme.teal : AppTheme.coral)),
-          const Spacer(),
-          // Options grid
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.count(shrinkWrap: true, crossAxisCount: 2,
-              mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 2.5,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+            child: GridView.count(
+              shrinkWrap: true, crossAxisCount: 2,
+              mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 2.4,
               children: _options.map((v) => GestureDetector(
                 onTap: () => _pick(v),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white10, borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white24)),
-                  child: Center(child: Text('$v',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white))))
-              )).toList())),
-          const SizedBox(height: 32),
-        ]),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: kBorder, width: 1.5),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))],
+                  ),
+                  child: Center(child: Text('$v', style: const TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: kDark))),
+                ),
+              )).toList(),
+            ),
+          ),
+        ])),
         if (_showResult) GameResultOverlay(
-          score: _score, xpEarned: _score >= 100 ? 120 : 20,
-          won: _score >= 100,
+          score: _score, xpEarned: _score >= 100 ? 120 : 20, won: _score >= 100,
           onContinue: () => Navigator.pop(context),
           onRetry: () => setState(() {
-            _score=0; _streak=0; _timeLeft=60; _gameOver=false; _showResult=false;
-            _nextQ(); _startTimer();
+            _score=0; _streak=0; _timeLeft=60; _gameOver=false; _showResult=false; _nextQ(); _startTimer();
           }),
         ),
-      ])),
+      ]),
     ),
   );
 }

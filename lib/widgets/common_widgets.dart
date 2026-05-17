@@ -11,10 +11,10 @@ class XpBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress   = AppConstants.xpProgress(xp);
-    final lvl        = AppConstants.levelNumber(xp);
-    final title      = AppConstants.levelTitle(xp);
-    final xpInLevel  = xp % 500;
+    final progress  = AppConstants.xpProgress(xp);
+    final lvl       = AppConstants.levelNumber(xp);
+    final title     = AppConstants.levelTitle(xp);
+    final xpInLevel = xp % 500;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,7 +25,7 @@ class XpBarWidget extends StatelessWidget {
             children: [
               Text('Level $lvl · $title',
                   style: const TextStyle(
-                      color: AppTheme.accentLight,
+                      color: AppTheme.textSec,
                       fontSize: 11,
                       fontWeight: FontWeight.w600)),
               Text('$xpInLevel / 500 XP',
@@ -39,7 +39,8 @@ class XpBarWidget extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: AppTheme.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent),
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(AppTheme.primary),
             minHeight: compact ? 3 : 5,
           ),
         ),
@@ -66,18 +67,18 @@ class AvatarWidget extends StatelessWidget {
     width: size, height: size,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: AppTheme.accent.withOpacity(0.2),
+      color: AppTheme.primary,
       border: showBorder
-          ? Border.all(color: AppTheme.accent, width: 2)
+          ? Border.all(color: AppTheme.primary, width: 2)
           : null,
     ),
     child: Center(
       child: Text(
         initials,
         style: TextStyle(
-          color: AppTheme.accentLight,
+          color: AppTheme.dark,
           fontSize: size * 0.30,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w800,
         ),
       ),
     ),
@@ -93,15 +94,15 @@ class BadgeChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     decoration: BoxDecoration(
-      color: AppTheme.accent.withOpacity(0.12),
+      color: AppTheme.primary.withOpacity(0.15),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
+      border: Border.all(color: AppTheme.primary.withOpacity(0.4)),
     ),
     child: Text(label,
         style: const TextStyle(
-            color: AppTheme.accentLight,
+            color: AppTheme.dark,
             fontSize: 11,
-            fontWeight: FontWeight.w500)),
+            fontWeight: FontWeight.w600)),
   );
 }
 
@@ -115,7 +116,7 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
     decoration: BoxDecoration(
-      color: AppTheme.bgSurface,
+      color: AppTheme.bgCard,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: AppTheme.border),
     ),
@@ -160,12 +161,19 @@ class GameResultOverlay extends StatelessWidget {
         margin: const EdgeInsets.all(32),
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: AppTheme.bgCard,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: won ? AppTheme.teal : AppTheme.coral,
-            width: 1.5,
+            width: 2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: (won ? AppTheme.teal : AppTheme.coral).withOpacity(0.2),
+              blurRadius: 24,
+              spreadRadius: 4,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -179,34 +187,45 @@ class GameResultOverlay extends StatelessWidget {
               won ? 'Well Played!' : 'Game Over',
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 color: won ? AppTheme.teal : AppTheme.coral,
               ),
             ).animate().slideY(begin: 0.3, duration: 400.ms, delay: 200.ms),
             const SizedBox(height: 20),
-            _row('Score',     '$score pts', AppTheme.accent),
+            _row('Score',     '$score pts', AppTheme.dark),
             const SizedBox(height: 8),
-            _row('XP Earned', '+$xpEarned XP', AppTheme.gold),
+            _row('XP Earned', '+$xpEarned XP', AppTheme.primary),
             const SizedBox(height: 28),
             Row(children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: onRetry,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppTheme.border),
+                    side: const BorderSide(color: AppTheme.border, width: 1.5),
+                    foregroundColor: AppTheme.textSec,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: const Text('Retry',
-                      style: TextStyle(color: AppTheme.textSec)),
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(
-                onPressed: onContinue,
-                child: const Text('Next Game'),
-              )),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onContinue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: AppTheme.dark,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Next Game',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
             ]),
           ],
         ),
@@ -223,7 +242,9 @@ class GameResultOverlay extends StatelessWidget {
               color: AppTheme.textSec, fontSize: 14)),
       Text(value,
           style: TextStyle(
-              color: color, fontSize: 16, fontWeight: FontWeight.w600)),
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.w700)),
     ],
   );
 }

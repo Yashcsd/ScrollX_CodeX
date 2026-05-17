@@ -28,9 +28,11 @@ dependencies:
   # ── UUID generator ──────────────────────────────────────
   uuid: ^4.4.0
 
-  # ── Firebase (optional – keep only if using it) ─────────
+  # ── Firebase ────────────────────────────────────────────
   firebase_core: ^4.7.0
   cloud_firestore: ^6.3.0
+  firebase_auth: ^6.4.0
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
