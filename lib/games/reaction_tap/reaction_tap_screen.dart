@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -26,33 +26,22 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
   bool _showResult = false;
 
   @override
-  void initState() {
-    super.initState();
-    _startWait();
-  }
-
+  void initState() { super.initState(); _startWait(); }
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
+  void dispose() { _timer?.cancel(); super.dispose(); }
 
   void _startWait() {
     setState(() => _phase = _Phase.waiting);
     final delay = _rng.nextInt(3000) + 1500;
     _timer = Timer(Duration(milliseconds: delay), () {
       if (!mounted) return;
-      setState(() {
-        _phase = _Phase.ready;
-        _greenAt = DateTime.now();
-      });
+      setState(() { _phase = _Phase.ready; _greenAt = DateTime.now(); });
     });
   }
 
   void _onTap() {
     if (_phase == _Phase.done) return;
     _timer?.cancel();
-
     if (_phase == _Phase.waiting) {
       setState(() => _phase = _Phase.tooEarly);
       Future.delayed(const Duration(seconds: 2), () {
@@ -60,7 +49,6 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
       });
       return;
     }
-
     if (_phase == _Phase.ready) {
       final ms = DateTime.now().difference(_greenAt!).inMilliseconds;
       _times.add(ms);
@@ -78,193 +66,133 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
   }
 
   void _showResults() {
-    final avg = _times.isEmpty
-        ? 999
-        : (_times.reduce((a, b) => a + b) ~/ _times.length);
+    final avg = _times.isEmpty ? 999 : (_times.reduce((a, b) => a + b) ~/ _times.length);
     final score = (1000 - avg).clamp(0, 1000);
     setState(() => _showResult = true);
     context.read<UserProvider>().recordGameResult(
-      gameId: 'reaction_tap',
-      gameName: 'Reaction Tap',
-      score: score,
-      timeTakenSeconds: 0,
-      won: avg < 400,
+      gameId: 'reaction_tap', gameName: 'Reaction Tap',
+      score: score, timeTakenSeconds: 0, won: avg < 400,
     );
   }
 
-  int get _avg =>
-      _times.isEmpty ? 0 : _times.reduce((a, b) => a + b) ~/ _times.length;
+  int get _avg => _times.isEmpty ? 0 : _times.reduce((a, b) => a + b) ~/ _times.length;
   int get _score => (1000 - _avg).clamp(0, 1000);
 
-  Color get _bgColor {
+  Color get _tapColor {
     switch (_phase) {
-      case _Phase.waiting:
-        return const Color(0xFF1A1A2E);
-      case _Phase.ready:
-        return const Color(0xFF0D4F3C);
-      case _Phase.tooEarly:
-        return const Color(0xFF4F1A0D);
-      case _Phase.done:
-        return const Color(0xFF1A1A2E);
+      case _Phase.ready:    return kTeal;
+      case _Phase.tooEarly: return kCoral;
+      default:              return kDark;
     }
   }
 
   String get _instruction {
     switch (_phase) {
-      case _Phase.waiting:
-        return 'Wait for GREEN…';
-      case _Phase.ready:
-        return 'TAP NOW!';
-      case _Phase.tooEarly:
-        return 'Too early! 😬\nWait for green…';
-      case _Phase.done:
-        return 'All done!';
-    }
-  }
-
-  Color get _instructionColor {
-    switch (_phase) {
-      case _Phase.waiting:
-        return AppTheme.textSec;
-      case _Phase.ready:
-        return Colors.white;
-      case _Phase.tooEarly:
-        return AppTheme.coral;
-      case _Phase.done:
-        return AppTheme.teal;
+      case _Phase.waiting:  return 'Wait for GREEN…';
+      case _Phase.ready:    return 'TAP NOW!';
+      case _Phase.tooEarly: return 'Too early!\nWait for green…';
+      case _Phase.done:     return 'All done!';
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GestureDetector(
-        onTap: _phase == _Phase.done ? null : _onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          color: _bgColor,
-          child: SafeArea(
-            child: Stack(children: [
-              Column(children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.close,
-                            color: Colors.white, size: 18),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Reaction Tap',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
-                    const Spacer(),
-                    Text('Round ${_round + 1} / $_totalRounds',
-                        style: const TextStyle(
-                            color: AppTheme.textSec, fontSize: 13)),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.white,
+    body: Container(
+      decoration: const BoxDecoration(gradient: kGameGradient),
+      child: Stack(children: [
+        SafeArea(
+          bottom: false,
+          child: Column(children: [
+            GameHeader(title: '⚡ Reaction Tap', actions: [ScoreBadge(score: _score)]),
+            const SizedBox(height: 12),
+            // Round progress
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(children: List.generate(_totalRounds, (i) => Expanded(
+                child: Container(
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    color: i < _round ? kTeal : (i == _round ? kYellow : kBorder),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ))),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(children: [
+                Expanded(child: GameCard(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(children: [
+                    const Text('ROUND', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                    Text('$_round / $_totalRounds', style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
                   ]),
-                ),
-
-                const Spacer(),
-
-                // Big icon
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    _phase == _Phase.ready
-                        ? Icons.bolt
-                        : Icons.circle_outlined,
-                    key: ValueKey(_phase),
-                    size: 100,
-                    color: _phase == _Phase.ready
-                        ? AppTheme.teal
-                        : Colors.white.withOpacity(0.4),
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // Instruction
-                Text(
-                  _instruction,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _instructionColor,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-
-                // Last reaction time
-                if (_times.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Text('Last: ${_times.last} ms',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 16)),
-                ],
-
-                const Spacer(),
-
-                // Previous attempts chips
-                if (_times.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _times
-                          .map((t) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text('${t} ms',
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 12)),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-
-                if (_times.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text('Average: $_avg ms',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 14)),
-                ],
-
-                const SizedBox(height: 48),
+                )),
+                const SizedBox(width: 12),
+                Expanded(child: GameCard(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(children: [
+                    const Text('LAST', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                    Text(_times.isEmpty ? '—' : '${_times.last} ms',
+                      style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
+                  ]),
+                )),
               ]),
-
-              if (_showResult)
-                GameResultOverlay(
-                  score: _score,
-                  xpEarned: _avg < 400 ? 120 : 20,
-                  won: _avg < 400,
-                  onContinue: () => Navigator.pop(context),
-                  onRetry: () => setState(() {
-                    _times = [];
-                    _round = 0;
-                    _showResult = false;
-                    _phase = _Phase.waiting;
-                    _startWait();
-                  }),
+            ),
+            const Spacer(),
+            // Big tap target
+            GestureDetector(
+              onTap: _phase == _Phase.done ? null : _onTap,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                width: 200, height: 200,
+                decoration: BoxDecoration(
+                  color: _tapColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: _tapColor, blurRadius: 0, offset: const Offset(0, 6))],
                 ),
-            ]),
-          ),
+                child: Center(
+                  child: Text(
+                    _phase == _Phase.ready ? 'TAP!' : _phase == _Phase.tooEarly ? '😬' : '●',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _instruction,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _phase == _Phase.ready ? kTeal : _phase == _Phase.tooEarly ? kCoral : kTextSec,
+                fontSize: 18, fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (_times.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text('Average: $_avg ms', style: const TextStyle(color: kTextMuted, fontSize: 13)),
+            ],
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+              child: OutlineButton(label: 'Restart', icon: Icons.refresh_rounded, onTap: () => setState(() {
+                _times = []; _round = 0; _showResult = false; _phase = _Phase.waiting; _startWait();
+              })),
+            ),
+          ]),
         ),
-      ),
-    );
-  }
+        if (_showResult) GameResultOverlay(
+          score: _score, xpEarned: _avg < 400 ? 120 : 20, won: _avg < 400,
+          onContinue: () => Navigator.pop(context),
+          onRetry: () => setState(() {
+            _times = []; _round = 0; _showResult = false; _phase = _Phase.waiting; _startWait();
+          }),
+        ),
+      ]),
+    ),
+  );
 }

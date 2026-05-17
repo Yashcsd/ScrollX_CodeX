@@ -305,7 +305,7 @@ class _HangingCharacter extends StatelessWidget {
               width: 4,
               height: 55,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.55),
+                color: Colors.white.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -319,12 +319,12 @@ class _HangingCharacter extends StatelessWidget {
               height: charSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.08),
-                boxShadow: [
+                color: Colors.white.withValues(alpha: 0.08),
+                boxShadow: const [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 40,
-                    offset: const Offset(0, 20),
+                    color: Color(0x33000000),
+                    blurRadius: 0,
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -363,11 +363,11 @@ class _GoogleButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Color(0x33000000),
+            blurRadius: 0,
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -382,11 +382,11 @@ class _GoogleButton extends StatelessWidget {
               color: Colors.white,
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: Color(0x33000000),
+                  blurRadius: 0,
+                  offset: Offset(0, 3),
                 ),
               ],
             ),
@@ -454,8 +454,8 @@ class _BottomSheet extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 20,
-            offset: Offset(0, -4),
+            blurRadius: 0,
+            offset: Offset(0, -6),
           ),
         ],
       ),
@@ -477,11 +477,6 @@ class _BottomSheet extends StatelessWidget {
                     color: _kYellowDark,
                     blurRadius: 0,
                     offset: Offset(0, 5),
-                  ),
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 14,
-                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -589,11 +584,6 @@ class _BirthYearSheetState extends State<_BirthYearSheet> {
                   blurRadius: 0,
                   offset: Offset(0, 6),
                 ),
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 18,
-                  offset: Offset(0, 8),
-                ),
               ],
             ),
             child: Column(children: [
@@ -629,7 +619,7 @@ class _BirthYearSheetState extends State<_BirthYearSheet> {
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white
-                                : Colors.white.withOpacity(0.35),
+                                : Colors.white.withValues(alpha: 0.35),
                             fontSize: isSelected ? 42 : 28,
                             fontWeight: isSelected
                                 ? FontWeight.w900
@@ -671,11 +661,6 @@ class _BirthYearSheetState extends State<_BirthYearSheet> {
                         color: _kYellowDark,
                         blurRadius: 0,
                         offset: Offset(0, 5),
-                      ),
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 12,
-                        offset: Offset(0, 8),
                       ),
                     ],
                   ),

@@ -89,19 +89,13 @@ class _GamesHeader extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
     return Container(
       color: AppTheme.primary,
-      padding: EdgeInsets.fromLTRB(16, top + 16, 16, 20),
+      padding: EdgeInsets.fromLTRB(16, top + 55, 16, 20),
       child: Container(
         height: 50,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [AppTheme.hardShadowSmall],
         ),
         child: Row(children: [
           const SizedBox(width: 16),
@@ -151,7 +145,7 @@ class _FilterRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     color: Colors.white,
-    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+    padding: const EdgeInsets.fromLTRB(12, 20, 12,20),
     child: SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -163,19 +157,36 @@ class _FilterRow extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: selected == tag ? AppTheme.dark : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: selected == tag ? AppTheme.dark : AppTheme.border,
-                  width: 1.5,
-                ),
+                color: selected == tag
+                    ? AppTheme.consoleYellow
+                    : const Color(0xFFF5F5F0),
+                borderRadius: BorderRadius.circular(16),
+                // Active: dark border. Inactive: NO border — remove the stroke.
+                border: selected == tag
+                    ? Border.all(color: AppTheme.dark, width: 1.5)
+                    : null,
+                boxShadow: selected == tag
+                    ? const [
+                        BoxShadow(
+                          color: Color(0xFFB89800), // solid mustard
+                          blurRadius: 0,
+                          offset: Offset(0, 4),
+                        ),
+                      ]
+                    : const [
+                        BoxShadow(
+                          color: Color(0xFFAAAAAA), // visible warm grey
+                          blurRadius: 0,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
               ),
               child: Text(
                 tag,
                 style: TextStyle(
-                  color: selected == tag ? Colors.white : AppTheme.textSec,
+                  color: selected == tag ? AppTheme.dark : AppTheme.textSec,
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: selected == tag ? FontWeight.w700 : FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -287,24 +298,50 @@ class _GameCard extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         gradient: game.gradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [AppTheme.hardShadow],
       ),
       child: Stack(children: [
-        // Tag badge
+        // ── Inner stroke frame — 6px inset, solid gray ────────────────
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(19),
+                border: Border.all(
+                  color: const Color(0x40FFFFFF), // white tint — visible on all gradient colors
+                  width: 2,
+                ),
+                // Subtle inner shadow to create depth/frame feel
+              ),
+            ),
+          ),
+        ),
+        // Outer inset shadow line (darker bottom-right edge for 3D frame)
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(19),
+                border: Border(
+                  bottom: const BorderSide(color: Color(0x30000000), width: 2),
+                  right:  const BorderSide(color: Color(0x30000000), width: 2),
+                  top:    BorderSide.none,
+                  left:   BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        ),
         Positioned(
           top: 10, left: 10,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               game.tag,
@@ -345,9 +382,9 @@ class _GameCard extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               onTap: () => onTap(game),
-              splashColor: Colors.white.withOpacity(0.15),
+              splashColor: Colors.transparent,
             ),
           ),
         ),

@@ -94,9 +94,10 @@ class BadgeChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     decoration: BoxDecoration(
-      color: AppTheme.primary.withOpacity(0.15),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppTheme.primary.withOpacity(0.4)),
+      color: AppTheme.consoleYellow,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: AppTheme.dark),
+      boxShadow: const [AppTheme.hardShadowSmall],
     ),
     child: Text(label,
         style: const TextStyle(
@@ -155,7 +156,7 @@ class GameResultOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    color: Colors.black87,
+    color: const Color(0xDD000000), // near-opaque solid dark overlay
     child: Center(
       child: Container(
         margin: const EdgeInsets.all(32),
@@ -167,11 +168,11 @@ class GameResultOverlay extends StatelessWidget {
             color: won ? AppTheme.teal : AppTheme.coral,
             width: 2,
           ),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: (won ? AppTheme.teal : AppTheme.coral).withOpacity(0.2),
-              blurRadius: 24,
-              spreadRadius: 4,
+              color: Color(0xFFBBBAB0), // solid warm grey
+              blurRadius: 0,
+              offset: Offset(0, 6),
             ),
           ],
         ),

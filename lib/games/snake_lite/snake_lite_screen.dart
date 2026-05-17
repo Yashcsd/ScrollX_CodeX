@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -33,8 +33,8 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
   void dispose() { _timer?.cancel(); super.dispose(); }
 
   void _reset() {
-    _snake = [const Point(9,11), const Point(8,11), const Point(7,11)];
-    _dir = const Point(1,0);
+    _snake = [const Point(9, 11), const Point(8, 11), const Point(7, 11)];
+    _dir = const Point(1, 0);
     _nextDir = null;
     _score = 0;
     _gameOver = false;
@@ -50,24 +50,16 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
   }
 
   void _placeFood() {
-    do {
-      _food = Point(_rng.nextInt(_cols), _rng.nextInt(_rows));
-    } while (_snake.contains(_food));
+    do { _food = Point(_rng.nextInt(_cols), _rng.nextInt(_rows)); }
+    while (_snake.contains(_food));
   }
 
   void _tick() {
     if (_gameOver) return;
     if (_nextDir != null) { _dir = _nextDir!; _nextDir = null; }
-
     final head = Point(_snake.first.x + _dir.x, _snake.first.y + _dir.y);
-
-    // Wall collision
-    if (head.x < 0 || head.x >= _cols || head.y < 0 || head.y >= _rows) {
-      _end(); return;
-    }
-    // Self collision
+    if (head.x < 0 || head.x >= _cols || head.y < 0 || head.y >= _rows) { _end(); return; }
     if (_snake.contains(head)) { _end(); return; }
-
     setState(() {
       _snake.insert(0, head);
       if (head == _food) { _score += 10; _placeFood(); }
@@ -88,11 +80,11 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
     if (!_started) { _start(); return; }
     final dx = d.delta.dx, dy = d.delta.dy;
     if (dx.abs() > dy.abs()) {
-      if (dx > 0 && _dir.x == 0) _nextDir = const Point(1,0);
-      if (dx < 0 && _dir.x == 0) _nextDir = const Point(-1,0);
+      if (dx > 0 && _dir.x == 0) _nextDir = const Point(1, 0);
+      if (dx < 0 && _dir.x == 0) _nextDir = const Point(-1, 0);
     } else {
-      if (dy > 0 && _dir.y == 0) _nextDir = const Point(0,1);
-      if (dy < 0 && _dir.y == 0) _nextDir = const Point(0,-1);
+      if (dy > 0 && _dir.y == 0) _nextDir = const Point(0, 1);
+      if (dy < 0 && _dir.y == 0) _nextDir = const Point(0, -1);
     }
   }
 
@@ -100,82 +92,81 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
   Widget build(BuildContext context) {
     final cellSize = (MediaQuery.of(context).size.width - 32) / _cols;
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A1A0A), Color(0xFF0D2E0D)])),
-        child: SafeArea(child: Stack(children: [
-          Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-              child: Row(children: [
-                GestureDetector(onTap: ()=>Navigator.pop(context),
-                  child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
-                const SizedBox(width: 12),
-                const Text('Snake Lite', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                const Spacer(),
-                Text('$_score pts', style: const TextStyle(color: AppTheme.teal, fontWeight: FontWeight.w700, fontSize: 16)),
-              ])),
-            const SizedBox(height: 8),
-            if (!_started)
-              Container(margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppTheme.teal.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12)),
-                child: const Text('Swipe to start & steer!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.teal, fontSize: 13))),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onPanUpdate: _swipe,
-              onTap: () { if (!_started) _start(); },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                width: double.infinity,
-                height: cellSize * _rows,
-                decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.teal.withOpacity(0.3)),
+        decoration: const BoxDecoration(gradient: kGameGradient),
+        child: Stack(children: [
+          SafeArea(
+            bottom: false,
+            child: Column(children: [
+              GameHeader(title: '🐍 Snake Lite', actions: [ScoreBadge(score: _score)]),
+              const SizedBox(height: 8),
+              if (!_started)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GameCard(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: const Text('Swipe to start & steer!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: kTeal, fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
                 ),
-                child: CustomPaint(painter: _SnakePainter(
-                  snake: _snake, food: _food,
-                  cols: _cols, rows: _rows, cellSize: cellSize,
-                )),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onPanUpdate: _swipe,
+                onTap: () { if (!_started) _start(); },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  width: double.infinity,
+                  height: cellSize * _rows,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [kHardShadow],
+                    border: Border.all(color: kBorder),
+                  ),
+                  child: CustomPaint(painter: _SnakePainter(
+                    snake: _snake, food: _food,
+                    cols: _cols, rows: _rows, cellSize: cellSize,
+                  )),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _dirBtn(Icons.arrow_upward,    () => { if (_dir.y==0) _nextDir=const Point(0,-1) }),
+              const SizedBox(height: 12),
+              // D-pad
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                _dirBtn(Icons.arrow_upward, () { if (_dir.y == 0) _nextDir = const Point(0, -1); }),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                _dirBtn(Icons.arrow_back, () { if (_dir.x == 0) _nextDir = const Point(-1, 0); }),
+                const SizedBox(width: 48),
+                _dirBtn(Icons.arrow_forward, () { if (_dir.x == 0) _nextDir = const Point(1, 0); }),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                _dirBtn(Icons.arrow_downward, () { if (_dir.y == 0) _nextDir = const Point(0, 1); }),
+              ]),
             ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _dirBtn(Icons.arrow_back,      () => { if (_dir.x==0) _nextDir=const Point(-1,0) }),
-              const SizedBox(width: 48),
-              _dirBtn(Icons.arrow_forward,   () => { if (_dir.x==0) _nextDir=const Point(1,0) }),
-            ]),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _dirBtn(Icons.arrow_downward,  () => { if (_dir.y==0) _nextDir=const Point(0,1) }),
-            ]),
-          ]),
+          ),
           if (_showResult) GameResultOverlay(
-            score: _score, xpEarned: _score >= 50 ? 120 : 20,
-            won: _score >= 50,
+            score: _score, xpEarned: _score >= 50 ? 120 : 20, won: _score >= 50,
             onContinue: () => Navigator.pop(context),
             onRetry: () => setState(() => _reset()),
           ),
-        ])),
+        ]),
       ),
     );
   }
 
   Widget _dirBtn(IconData icon, VoidCallback fn) => GestureDetector(
     onTap: () { if (!_started) _start(); fn(); },
-    child: Container(width: 48, height: 48, margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: AppTheme.teal.withOpacity(0.2),
+    child: Container(
+      width: 48, height: 48, margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.teal.withOpacity(0.4))),
-      child: Icon(icon, color: AppTheme.teal, size: 22)),
+        boxShadow: const [kHardShadow],
+      ),
+      child: Icon(icon, color: kTeal, size: 22),
+    ),
   );
 }
 
@@ -190,22 +181,17 @@ class _SnakePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final headPaint  = Paint()..color = AppTheme.teal;
-    final bodyPaint  = Paint()..color = AppTheme.teal.withOpacity(0.6);
-    final foodPaint  = Paint()..color = AppTheme.coral;
+    final headPaint = Paint()..color = kTeal;
+    final bodyPaint = Paint()..color = const Color(0xFF1D9E75);
+    final foodPaint = Paint()..color = kCoral;
 
     for (int i = 0; i < snake.length; i++) {
       final p = snake[i];
-      final r = Rect.fromLTWH(
-        p.x * cellSize + 1, p.y * cellSize + 1,
-        cellSize - 2, cellSize - 2);
+      final r = Rect.fromLTWH(p.x * cellSize + 1, p.y * cellSize + 1, cellSize - 2, cellSize - 2);
       canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
         i == 0 ? headPaint : bodyPaint);
     }
-
-    final fr = Rect.fromLTWH(
-      food.x * cellSize + 2, food.y * cellSize + 2,
-      cellSize - 4, cellSize - 4);
+    final fr = Rect.fromLTWH(food.x * cellSize + 2, food.y * cellSize + 2, cellSize - 4, cellSize - 4);
     canvas.drawOval(fr, foodPaint);
   }
 

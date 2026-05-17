@@ -1,20 +1,67 @@
 // lib/core/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // ─── New ScrollX Color Palette ──────────────────────────────────────────────
-  static const Color primary     = Color(0xFFF5C800); // Yellow
-  static const Color primaryDark = Color(0xFFD4A800); // Darker yellow
-  static const Color bg          = Color(0xFFFFFFFF); // White background
-  static const Color bgCard      = Color(0xFFF8F8F8); // Light card
-  static const Color bgSurface   = Color(0xFFF0F0F0); // Surface
-  static const Color dark        = Color(0xFF1A1A1A); // Near black
-  static const Color darkCard    = Color(0xFF2A2A2A); // Dark card
+  // ─── ScrollX Color Palette ──────────────────────────────────────────────────
+  static const Color primary       = Color(0xFFE4D400); // Rich warm yellow
+  static const Color consoleYellow = Color(0xFFFFD600); // Active button yellow
+  static const Color yellowDark    = Color(0xFFB89800); // Solid shadow for yellow — no opacity
+  static const Color yellowLight   = Color(0xFFFFEA64);
+  static const Color primaryDark   = Color(0xFFD4A800);
+
+  // White / surface
+  static const Color bg          = Color(0xFFFFFFFF);
+  static const Color bgWarm      = Color(0xFFFAF9F0); // Warm off-white
+  static const Color bgCard      = Color(0xFFF5F5F0); // Slightly warm card surface
+  static const Color bgSurface   = Color(0xFFEEEDE4); // Slightly darker surface
+  static const Color navbarColor = Color(0xFFFFFFFF); // Navbar white
+  static const Color navbarShadow= Color(0xFFD4D2C8); // Solid warm-grey shadow for navbar
+
+  // Dark
+  static const Color dark        = Color(0xFF1A1A1A);
+  static const Color darkCard    = Color(0xFF2A2A2A);
+
+  // Text
   static const Color textPrimary = Color(0xFF1A1A1A);
   static const Color textSec     = Color(0xFF666666);
   static const Color textMuted   = Color(0xFF999999);
   static const Color border      = Color(0xFFE8E8E8);
+  static const Color borderWarm  = Color(0xFFDDDBC8);
+
+  // ─── SOLID-COLOR HARD SHADOWS — zero opacity, zero blur ────────────────────
+  // Rule: every shadow is a solid darker shade of its parent. No rgba. No alpha.
+
+  /// Yellow button shadow — dark mustard, no opacity
+  static const BoxShadow yellowButtonShadow = BoxShadow(
+    color: Color(0xFFB89800), // solid dark mustard
+    blurRadius: 0,
+    spreadRadius: 0,
+    offset: Offset(0, 5),
+  );
+
+  /// Card / pill shadow — slightly darker warm surface, no opacity
+  static const BoxShadow hardShadowSmall = BoxShadow(
+    color: Color(0xFFCCCBC0), // solid warm grey
+    blurRadius: 0,
+    spreadRadius: 0,
+    offset: Offset(0, 3),
+  );
+
+  /// General card shadow
+  static const BoxShadow hardShadow = BoxShadow(
+    color: Color(0xFFBBBAB0), // solid warm grey, slightly darker
+    blurRadius: 0,
+    spreadRadius: 0,
+    offset: Offset(0, 4),
+  );
+
+  /// Navbar shadow — strongest in the app, solid warm grey
+  static const BoxShadow hardShadowStrong = BoxShadow(
+    color: Color(0xFFB8B6AA), // solid warm grey dock shadow
+    blurRadius: 0,
+    spreadRadius: 0,
+    offset: Offset(0, 8),
+  );
 
   // ─── Keep game-specific colors ──────────────────────────────────────────────
   static const Color accent      = Color(0xFF7F77DD);
@@ -48,38 +95,38 @@ class AppTheme {
   static ThemeData get theme => ThemeData(
     brightness: Brightness.light,
     scaffoldBackgroundColor: bg,
-    fontFamily: GoogleFonts.manrope().fontFamily,
+    fontFamily: 'National Park',
     colorScheme: const ColorScheme.light(
       primary: primary,
       secondary: dark,
       surface: bgCard,
       error: coral,
     ),
-    textTheme: TextTheme(
-      displayLarge: GoogleFonts.manrope(
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
           fontSize: 28, fontWeight: FontWeight.w800, color: textPrimary),
-      headlineLarge: GoogleFonts.manrope(
+      headlineLarge: TextStyle(
           fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary),
-      headlineMedium: GoogleFonts.manrope(
+      headlineMedium: TextStyle(
           fontSize: 15, fontWeight: FontWeight.w600, color: textPrimary),
-      bodyLarge: GoogleFonts.manrope(
+      bodyLarge: TextStyle(
           fontSize: 14, fontWeight: FontWeight.w400, color: textPrimary),
-      bodyMedium: GoogleFonts.manrope(
+      bodyMedium: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w400, color: textSec),
-      bodySmall: GoogleFonts.manrope(
+      bodySmall: TextStyle(
           fontSize: 10, fontWeight: FontWeight.w400, color: textMuted),
-      labelLarge: GoogleFonts.manrope(
+      labelLarge: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w600, color: textPrimary),
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: primary,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.manrope(
+      titleTextStyle: TextStyle(
         fontSize: 17, fontWeight: FontWeight.w700,
         color: dark, letterSpacing: 0,
       ),
-      iconTheme: const IconThemeData(color: dark),
+      iconTheme: IconThemeData(color: dark),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -88,7 +135,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24)),
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-        textStyle: GoogleFonts.manrope(
+        textStyle: const TextStyle(
             fontSize: 14, fontWeight: FontWeight.w700),
       ),
     ),
