@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -85,67 +86,40 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF2D1B00), Color(0xFF6B3A00)],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(
           child: Stack(
             children: [
               Column(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.close,
-                                color: Colors.white, size: 18),
-                          ),
+                  GameHeader(
+                    title: 'Odd One Out',
+                    actions: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: kYellow.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: kYellow.withOpacity(0.3)),
                         ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Odd One Out',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${_round + 1}/8  $_score pts',
-                          style: const TextStyle(
-                            color: AppTheme.gold,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                        child: Text('${_round + 1}/8', style: const TextStyle(
+                          color: kDark, fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                      const SizedBox(width: 8),
+                      ScoreBadge(score: _score),
+                    ],
                   ),
 
                   const Spacer(),
 
                   const Text(
                     'Tap the one that DOESN\'T belong!',
-                    style: TextStyle(color: AppTheme.textSec, fontSize: 15),
+                    style: TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 32),
 
-                  // 2x2 emoji grid — fixed bracket structure
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                  // 2x2 emoji grid
+                  GameCard(
                     child: GridView.count(
                       shrinkWrap: true,
                       crossAxisCount: 2,
@@ -157,16 +131,14 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
                           onTap: () => _pick(i),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white10,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: Colors.white12, width: 1.5),
+                              boxShadow: [kGameShadow],
                             ),
                             child: Center(
                               child: Text(
                                 _items[i],
-                                style:
-                                const TextStyle(fontSize: 52),
+                                style: const TextStyle(fontSize: 52),
                               ),
                             ),
                           ),
@@ -175,15 +147,12 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
                     ),
                   ),
 
-                  // Flash message — now OUTSIDE GridView, correct position
                   const SizedBox(height: 24),
                   if (_flash != null)
                     Text(
                       _flash!,
                       style: TextStyle(
-                        color: _flash!.contains('✓')
-                            ? AppTheme.teal
-                            : AppTheme.coral,
+                        color: _flash!.contains('✓') ? Colors.green : Colors.red,
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),

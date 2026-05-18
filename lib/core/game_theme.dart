@@ -14,6 +14,13 @@ const kCoral      = Color(0xFFD85A30);
 const kBlue       = Color(0xFF378ADD);
 const kPink       = Color(0xFFD4537E);
 
+// Reusable shadow for cards and buttons
+final kGameShadow = BoxShadow(
+  color: Colors.black.withOpacity(0.08),
+  blurRadius: 6,
+  offset: const Offset(0, 2),
+);
+
 // ── Game screen gradient (yellow top → white bottom) ─────────────────────────
 const kGameGradient = LinearGradient(
   begin: Alignment.topCenter,

@@ -25,6 +25,27 @@ import '../games/anagram_rush/anagram_rush_screen.dart';
 import '../games/shape_tap/shape_tap_screen.dart';
 import '../games/whack_mole/whack_mole_screen.dart';
 import '../games/pairs_equation/pairs_equation_screen.dart';
+import '../games/color_switch/color_switch_screen.dart';
+import '../games/flappy_tap/flappy_tap_screen.dart';
+import '../games/reflex_master/reflex_master_screen.dart';
+import '../games/word_chain/word_chain_screen.dart';
+import '../games/rhythm_tap/rhythm_tap_screen.dart';
+import '../games/emoji_match/emoji_match_screen.dart';
+import '../games/number_crush/number_crush_screen.dart';
+import '../games/quick_math/quick_math_screen.dart';
+import '../games/maze_runner/maze_runner_screen.dart';
+import '../games/spin_wheel/spin_wheel_screen.dart';
+import '../games/sky_racer/sky_racer_screen.dart';
+import '../games/bird_blast/bird_blast_screen.dart';
+import '../games/brick_breaker/brick_breaker_screen.dart';
+import '../games/space_shooter/space_shooter_screen.dart';
+import '../games/fruit_ninja/fruit_ninja_screen.dart';
+import '../games/doodle_jump/doodle_jump_screen.dart';
+import '../games/stack_tower/stack_tower_screen.dart';
+import '../games/bubble_shooter/bubble_shooter_screen.dart';
+import '../games/candy_crush/candy_crush_screen.dart';
+import '../games/temple_run/temple_run_screen.dart';
+import '../games/jetpack_hero/jetpack_hero_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Game data model
@@ -53,7 +74,7 @@ class FeedGame {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ALL 21 GAMES
+// ALL 41 GAMES (21 original + 10 new puzzle/skill + 10 entertainment/arcade)
 // ─────────────────────────────────────────────────────────────────────────────
 final List<FeedGame> allFeedGames = [
   FeedGame(
@@ -265,6 +286,216 @@ final List<FeedGame> allFeedGames = [
     ),
     plays: 3600, likes: 2100, comments: 3000, shares: 3800, rating: 4.3,
     buildScreen: () => const PairsEquationScreen(),
+  ),
+  FeedGame(
+    id: 'color_switch', name: 'Color Switch', emoji: '🎨', tag: 'REFLEX',
+    description: 'Tap MATCH if colors are same, DIFFERENT if not. Fast reflexes!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+    ),
+    plays: 7200, likes: 4100, comments: 5000, shares: 6100, rating: 4.6,
+    buildScreen: () => const ColorSwitchScreen(),
+  ),
+  FeedGame(
+    id: 'flappy_tap', name: 'Flappy Tap', emoji: '🐦', tag: 'ARCADE',
+    description: 'Tap to fly! Navigate through gaps without hitting obstacles.',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF4ECDC4), Color(0xFF44A08D)],
+    ),
+    plays: 9800, likes: 5600, comments: 6700, shares: 7900, rating: 4.8,
+    buildScreen: () => const FlappyTapScreen(),
+  ),
+  FeedGame(
+    id: 'reflex_master', name: 'Reflex Master', emoji: '⚡', tag: 'REFLEX',
+    description: 'Tap the arrow direction shown! Test your reaction speed.',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFFA726), Color(0xFFFB8C00)],
+    ),
+    plays: 6500, likes: 3800, comments: 4700, shares: 5600, rating: 4.5,
+    buildScreen: () => const ReflexMasterScreen(),
+  ),
+  FeedGame(
+    id: 'word_chain', name: 'Word Chain', emoji: '🔗', tag: 'WORDS',
+    description: 'Connect words where last letter matches first letter!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+    ),
+    plays: 4200, likes: 2600, comments: 3400, shares: 4300, rating: 4.4,
+    buildScreen: () => const WordChainScreen(),
+  ),
+  FeedGame(
+    id: 'rhythm_tap', name: 'Rhythm Tap', emoji: '🎵', tag: 'ARCADE',
+    description: 'Tap the notes as they reach the line. Perfect timing wins!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFFE056FD), Color(0xFF8E2DE2)],
+    ),
+    plays: 8100, likes: 4900, comments: 5800, shares: 6900, rating: 4.7,
+    buildScreen: () => const RhythmTapScreen(),
+  ),
+  FeedGame(
+    id: 'emoji_match', name: 'Emoji Match', emoji: '😊', tag: 'MEMORY',
+    description: 'Find matching emoji pairs in this memory challenge!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
+    ),
+    plays: 5900, likes: 3500, comments: 4400, shares: 5300, rating: 4.5,
+    buildScreen: () => const EmojiMatchScreen(),
+  ),
+  FeedGame(
+    id: 'number_crush', name: 'Number Crush', emoji: '🔢', tag: 'MATH',
+    description: 'Match numbers that add up to the target sum. Quick thinking!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+    ),
+    plays: 4800, likes: 2900, comments: 3700, shares: 4600, rating: 4.3,
+    buildScreen: () => const NumberCrushScreen(),
+  ),
+  FeedGame(
+    id: 'quick_math', name: 'Quick Math', emoji: '➗', tag: 'MATH',
+    description: 'Solve arithmetic problems fast! Build streaks for bonus points.',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
+    ),
+    plays: 7400, likes: 4300, comments: 5200, shares: 6300, rating: 4.6,
+    buildScreen: () => const QuickMathScreen(),
+  ),
+  FeedGame(
+    id: 'maze_runner', name: 'Maze Runner', emoji: '🏃', tag: 'PUZZLE',
+    description: 'Navigate through mazes to reach the goal. 5 levels!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFFFA709A), Color(0xFFFEE140)],
+    ),
+    plays: 6100, likes: 3600, comments: 4500, shares: 5400, rating: 4.4,
+    buildScreen: () => const MazeRunnerScreen(),
+  ),
+  FeedGame(
+    id: 'spin_wheel', name: 'Spin Wheel', emoji: '🎡', tag: 'ARCADE',
+    description: 'Stop the spinning wheel on the target number. Timing is key!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFF30CFD0), Color(0xFF330867)],
+    ),
+    plays: 8700, likes: 5100, comments: 6100, shares: 7200, rating: 4.7,
+    buildScreen: () => const SpinWheelScreen(),
+  ),
+  FeedGame(
+    id: 'sky_racer', name: 'Sky Racer', emoji: '🏎️', tag: 'ARCADE',
+    description: 'Unlimited racing! Dodge obstacles and collect points!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+    ),
+    plays: 12500, likes: 7200, comments: 8100, shares: 9300, rating: 4.9,
+    buildScreen: () => const SkyRacerScreen(),
+  ),
+  FeedGame(
+    id: 'bird_blast', name: 'Bird Blast', emoji: '🐦', tag: 'ARCADE',
+    description: 'Flappy bird style! Tap to fly through pipes. Addictive!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF56CCF2), Color(0xFF2F80ED)],
+    ),
+    plays: 15200, likes: 8900, comments: 9800, shares: 11200, rating: 4.8,
+    buildScreen: () => const BirdBlastScreen(),
+  ),
+  FeedGame(
+    id: 'brick_breaker', name: 'Brick Breaker', emoji: '🧱', tag: 'ARCADE',
+    description: 'Classic brick breaker! Swipe to move paddle and break all bricks.',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
+    ),
+    plays: 9800, likes: 5700, comments: 6800, shares: 7900, rating: 4.6,
+    buildScreen: () => const BrickBreakerScreen(),
+  ),
+  FeedGame(
+    id: 'space_shooter', name: 'Space Shooter', emoji: '🚀', tag: 'ARCADE',
+    description: 'Shoot aliens in space! Survive waves and get high scores!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF0F2027), Color(0xFF2C5364)],
+    ),
+    plays: 11400, likes: 6800, comments: 7900, shares: 9100, rating: 4.7,
+    buildScreen: () => const SpaceShooterScreen(),
+  ),
+  FeedGame(
+    id: 'fruit_ninja', name: 'Fruit Ninja', emoji: '🍉', tag: 'ARCADE',
+    description: 'Swipe to slice fruits! Avoid bombs and build combos!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFF9A56), Color(0xFFFF6B95)],
+    ),
+    plays: 13800, likes: 8100, comments: 9200, shares: 10500, rating: 4.8,
+    buildScreen: () => const FruitNinjaScreen(),
+  ),
+  FeedGame(
+    id: 'doodle_jump', name: 'Doodle Jump', emoji: '🦘', tag: 'ARCADE',
+    description: 'Jump on platforms! Go as high as you can without falling!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF89F7FE), Color(0xFF66A6FF)],
+    ),
+    plays: 10900, likes: 6400, comments: 7500, shares: 8700, rating: 4.7,
+    buildScreen: () => const DoodleJumpScreen(),
+  ),
+  FeedGame(
+    id: 'stack_tower', name: 'Stack Tower', emoji: '🏗️', tag: 'ARCADE',
+    description: 'Stack blocks perfectly! Build the highest tower possible!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFFA751), Color(0xFFFFE259)],
+    ),
+    plays: 8900, likes: 5200, comments: 6300, shares: 7400, rating: 4.5,
+    buildScreen: () => const StackTowerScreen(),
+  ),
+  FeedGame(
+    id: 'bubble_shooter', name: 'Bubble Shooter', emoji: '🫧', tag: 'PUZZLE',
+    description: 'Match 3+ bubbles! Aim and shoot to clear the board!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFFA8EDEA), Color(0xFFFED6E3)],
+    ),
+    plays: 12100, likes: 7000, comments: 8100, shares: 9400, rating: 4.8,
+    buildScreen: () => const BubbleShooterScreen(),
+  ),
+  FeedGame(
+    id: 'candy_crush', name: 'Candy Crush', emoji: '🍬', tag: 'PUZZLE',
+    description: 'Match 3 candies! Swap and crush to reach the target score!',
+    gradient: const LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFFFF6FD8), Color(0xFF3813C2)],
+    ),
+    plays: 16700, likes: 9800, comments: 11200, shares: 13100, rating: 4.9,
+    buildScreen: () => const CandyCrushScreen(),
+  ),
+  FeedGame(
+    id: 'temple_run', name: 'Temple Run', emoji: '🏃', tag: 'ARCADE',
+    description: 'Endless runner! Switch lanes to avoid obstacles and collect coins!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF8B4513), Color(0xFF654321)],
+    ),
+    plays: 14300, likes: 8400, comments: 9600, shares: 11000, rating: 4.8,
+    buildScreen: () => const TempleRunScreen(),
+  ),
+  FeedGame(
+    id: 'jetpack_hero', name: 'Jetpack Hero', emoji: '🚀', tag: 'ARCADE',
+    description: 'Jetpack joyride style! Hold to fly, avoid lasers, collect coins!',
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+      colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+    ),
+    plays: 13200, likes: 7700, comments: 8900, shares: 10200, rating: 4.8,
+    buildScreen: () => const JetpackHeroScreen(),
   ),
 ];
 

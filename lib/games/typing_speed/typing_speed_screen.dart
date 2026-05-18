@@ -4,6 +4,7 @@ import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -79,53 +80,52 @@ class _TypingSpeedScreenState extends State<TypingSpeedScreen> {
   Widget build(BuildContext context) => Scaffold(
     resizeToAvoidBottomInset: true,
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF1A1A35), Color(0xFF2D1B69)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Typing Speed', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('$_timeLeft s', style: TextStyle(
-                color: _timeLeft > 20 ? AppTheme.teal : _timeLeft > 10 ? AppTheme.gold : AppTheme.coral,
-                fontSize: 14, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 12),
-              Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
+          GameHeader(
+            title: 'Typing Speed',
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _timeLeft > 20 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _timeLeft > 20 ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
+                ),
+                child: Text('$_timeLeft s', style: TextStyle(
+                  color: _timeLeft > 20 ? Colors.green : Colors.red,
+                  fontSize: 13, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 8),
+              ScoreBadge(score: _score),
+            ],
+          ),
           const SizedBox(height: 12),
-          ClipRRect(borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: _timeLeft / 60,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent), minHeight: 4)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GameProgressBar(value: _timeLeft / 60),
+          ),
           const SizedBox(height: 16),
           // Word display
-          Container(margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white12)),
+          GameCard(
             child: Wrap(spacing: 8, runSpacing: 8,
               children: List.generate(min(15, _wordList.length - _currentIdx), (i) {
                 final idx = _currentIdx + i;
-                return Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                return Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: i == 0 ? AppTheme.accent.withOpacity(0.25) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: i == 0 ? Border.all(color: AppTheme.accent.withOpacity(0.6)) : null),
+                    color: i == 0 ? kYellow.withOpacity(0.15) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: i == 0 ? Border.all(color: kYellow.withOpacity(0.4)) : null),
                   child: Text(_wordList[idx],
-                    style: TextStyle(color: i == 0 ? Colors.white : AppTheme.textSec, fontSize: 16,
+                    style: TextStyle(color: i == 0 ? kDark : kTextMuted, fontSize: 15,
                       fontWeight: i == 0 ? FontWeight.w700 : FontWeight.w400)));
-              }))),
+              })),
+          ),
           const SizedBox(height: 16),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('Words: $_currentIdx  ', style: const TextStyle(color: AppTheme.teal, fontSize: 12)),
-            Text('Errors: $_errors', style: const TextStyle(color: AppTheme.coral, fontSize: 12)),
+            Text('Words: $_currentIdx  ', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.w600)),
+            Text('Errors: $_errors', style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600)),
           ]),
           const Spacer(),
           Padding(padding: const EdgeInsets.fromLTRB(16,0,16,16),
@@ -133,15 +133,15 @@ class _TypingSpeedScreenState extends State<TypingSpeedScreen> {
               controller: _ctrl,
               focusNode: _focus,
               autofocus: true,
-              style: const TextStyle(color: Colors.white, fontSize: 18),
+              style: const TextStyle(color: kDark, fontSize: 18, fontWeight: FontWeight.w600),
               decoration: InputDecoration(
                 hintText: _started ? 'Keep typing…' : 'Start typing to begin!',
-                hintStyle: const TextStyle(color: AppTheme.textMuted),
-                filled: true, fillColor: Colors.white10,
+                hintStyle: const TextStyle(color: kTextMuted),
+                filled: true, fillColor: Colors.white,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppTheme.accent, width: 1.5)),
+                  borderSide: const BorderSide(color: kYellow, width: 2)),
               ),
             )),
         ]),
@@ -157,5 +157,3 @@ class _TypingSpeedScreenState extends State<TypingSpeedScreen> {
     ),
   );
 }
-
-

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -91,65 +92,29 @@ class _WhackMoleScreenState extends State<WhackMoleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A0D00), Color(0xFF3D2200)],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(
           child: Stack(
             children: [
               Column(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.close,
-                                color: Colors.white, size: 18),
-                          ),
+                  GameHeader(
+                    title: 'Whack-a-Mole',
+                    actions: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _timeLeft > 10 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: _timeLeft > 10 ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
                         ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Whack-a-Mole',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '$_timeLeft s',
-                          style: TextStyle(
-                            color: _timeLeft > 10
-                                ? AppTheme.teal
-                                : AppTheme.coral,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '$_score pts',
-                          style: const TextStyle(
-                            color: AppTheme.gold,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
+                        child: Text('$_timeLeft s', style: TextStyle(
+                          color: _timeLeft > 10 ? Colors.green : Colors.red,
+                          fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                      const SizedBox(width: 8),
+                      ScoreBadge(score: _score),
+                    ],
                   ),
 
                   const Spacer(),
@@ -157,25 +122,15 @@ class _WhackMoleScreenState extends State<WhackMoleScreen> {
                   // Timer bar
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _timeLeft / 30,
-                        backgroundColor: Colors.white10,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          _timeLeft > 10
-                              ? AppTheme.teal
-                              : AppTheme.coral,
-                        ),
-                        minHeight: 5,
-                      ),
+                    child: GameProgressBar(
+                      value: _timeLeft / 30,
+                      color: _timeLeft > 10 ? Colors.green : Colors.red,
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Mole grid — fixed bracket structure
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                  // Mole grid
+                  GameCard(
                     child: GridView.count(
                       shrinkWrap: true,
                       crossAxisCount: 3,
@@ -189,16 +144,15 @@ class _WhackMoleScreenState extends State<WhackMoleScreen> {
                             duration: const Duration(milliseconds: 100),
                             decoration: BoxDecoration(
                               color: _hit[i]
-                                  ? AppTheme.gold.withOpacity(0.3)
+                                  ? kYellow.withOpacity(0.3)
                                   : _active[i]
-                                  ? const Color(0xFF5C3A00)
-                                  : Colors.brown.withOpacity(0.15),
+                                  ? Colors.brown.shade100
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _active[i]
-                                    ? Colors.brown
-                                    : Colors.white10,
-                              ),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 6, offset: const Offset(0, 2)),
+                              ],
                             ),
                             child: Center(
                               child: AnimatedSwitcher(

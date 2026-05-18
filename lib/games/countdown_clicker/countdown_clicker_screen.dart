@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -51,57 +52,56 @@ class _CountdownClickerScreenState extends State<CountdownClickerScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0xFF1A0A00), Color(0xFF5C2A00)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Countdown Clicker', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-            ])),
+          const GameHeader(
+            title: 'Countdown Clicker',
+          ),
           const Spacer(),
-          Text('Tap $_target times in 10 seconds!',
-            style: const TextStyle(color: AppTheme.textSec, fontSize: 15)),
-          const SizedBox(height: 20),
-          Stack(alignment: Alignment.center, children: [
-            SizedBox(width: 120, height: 120,
-              child: CircularProgressIndicator(
-                value: _timeLeft / 10,
-                strokeWidth: 8,
-                backgroundColor: Colors.white10,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _timeLeft > 5 ? AppTheme.teal : AppTheme.coral),
-              )),
-            Text('$_timeLeft', style: const TextStyle(
-              color: Colors.white, fontSize: 40, fontWeight: FontWeight.w800)),
-          ]),
-          const SizedBox(height: 20),
-          Text('$_counter / $_target',
-            style: const TextStyle(color: AppTheme.gold, fontSize: 28, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          ClipRRect(borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: _counter / _target,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.gold),
-              minHeight: 16)),
+          GameCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Tap $_target times in 10 seconds!',
+                  style: const TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 24),
+                Stack(alignment: Alignment.center, children: [
+                  SizedBox(width: 120, height: 120,
+                    child: CircularProgressIndicator(
+                      value: _timeLeft / 10,
+                      strokeWidth: 8,
+                      backgroundColor: kTextMuted.withOpacity(0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _timeLeft > 5 ? Colors.green : Colors.red),
+                    )),
+                  Text('$_timeLeft', style: const TextStyle(
+                    color: kDark, fontSize: 40, fontWeight: FontWeight.w800)),
+                ]),
+                const SizedBox(height: 24),
+                Text('$_counter / $_target',
+                  style: const TextStyle(color: kDark, fontSize: 28, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                ClipRRect(borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: _counter / _target,
+                    backgroundColor: kTextMuted.withOpacity(0.2),
+                    valueColor: const AlwaysStoppedAnimation<Color>(kYellow),
+                    minHeight: 16)),
+              ],
+            ),
+          ),
           const Spacer(),
           GestureDetector(
             onTap: _tap,
             child: Container(
               width: 200, height: 200,
               decoration: BoxDecoration(
-                color: AppTheme.coral.withOpacity(0.2),
+                color: Colors.red.withOpacity(0.1),
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.coral, width: 3)),
+                border: Border.all(color: Colors.red, width: 3)),
               child: const Center(child: Text('TAP!',
-                style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900))))),
+                style: TextStyle(color: Colors.red, fontSize: 32, fontWeight: FontWeight.w900))))),
           const SizedBox(height: 48),
         ]),
         if (_showResult) GameResultOverlay(

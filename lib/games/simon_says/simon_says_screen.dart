@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -86,49 +87,56 @@ class _SimonSaysScreenState extends State<SimonSaysScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFF0D1B2A), Color(0xFF1B2838)])),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(child: Stack(children: [
           Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-              child: Row(children: [
-                GestureDetector(onTap: ()=>Navigator.pop(context),
-                  child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
-                const SizedBox(width: 12),
-                const Text('Simon Says', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                const Spacer(),
-                Text('Level $len', style: const TextStyle(color: AppTheme.accentLight, fontSize: 13, fontWeight: FontWeight.w600)),
-                const SizedBox(width: 12),
-                Text('$score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-              ])),
+            GameHeader(
+              title: 'Simon Says',
+              actions: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: kYellow.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: kYellow.withOpacity(0.3)),
+                  ),
+                  child: Text('Level $len', style: const TextStyle(color: kDark, fontSize: 13, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 8),
+                ScoreBadge(score: score),
+              ],
+            ),
             const Spacer(),
-            Text(_showing ? 'Watch carefully…' : 'Your turn! Repeat the pattern',
-              style: TextStyle(color: _showing ? AppTheme.accentLight : Colors.white,
-                fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text('${_userIdx}/${_sequence.length} correct',
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-            const Spacer(),
-            // 2x2 grid of color buttons
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: GridView.count(shrinkWrap: true, crossAxisCount: 2,
-                mainAxisSpacing: 16, crossAxisSpacing: 16,
-                children: List.generate(4, (i) => GestureDetector(
-                  onTap: () => _tap(i),
-                  child: AnimatedContainer(duration: const Duration(milliseconds: 100),
-                    decoration: BoxDecoration(
-                      color: _lit == i ? _cols[i] : _cols[i].withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _cols[i].withOpacity(0.6), width: 2),
-                      boxShadow: _lit == i ? [BoxShadow(color: _cols[i].withOpacity(0.6),
-                        blurRadius: 20, spreadRadius: 4)] : null,
-                    ),
-                    child: Center(child: Text(_labels[i],
-                      style: TextStyle(color: _lit == i ? Colors.white : _cols[i].withOpacity(0.7),
-                        fontSize: 16, fontWeight: FontWeight.w700)))))))),
+            GameCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_showing ? 'Watch carefully…' : 'Your turn! Repeat the pattern',
+                    style: TextStyle(color: _showing ? kYellow : kDark,
+                      fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Text('${_userIdx}/${_sequence.length} correct',
+                    style: const TextStyle(color: kTextMuted, fontSize: 12)),
+                  const SizedBox(height: 24),
+                  // 2x2 grid of color buttons
+                  GridView.count(shrinkWrap: true, crossAxisCount: 2,
+                    mainAxisSpacing: 16, crossAxisSpacing: 16,
+                    children: List.generate(4, (i) => GestureDetector(
+                      onTap: () => _tap(i),
+                      child: AnimatedContainer(duration: const Duration(milliseconds: 100),
+                        decoration: BoxDecoration(
+                          color: _lit == i ? _cols[i] : _cols[i].withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _cols[i].withOpacity(0.6), width: 2),
+                          boxShadow: _lit == i ? [BoxShadow(color: _cols[i].withOpacity(0.6),
+                            blurRadius: 20, spreadRadius: 4)] : null,
+                        ),
+                        child: Center(child: Text(_labels[i],
+                          style: TextStyle(color: _lit == i ? Colors.white : _cols[i].withOpacity(0.7),
+                            fontSize: 16, fontWeight: FontWeight.w700))))))),
+                ],
+              ),
+            ),
             const Spacer(),
             const SizedBox(height: 40),
           ]),

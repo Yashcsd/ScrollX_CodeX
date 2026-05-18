@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -96,19 +97,6 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
       _times.isEmpty ? 0 : _times.reduce((a, b) => a + b) ~/ _times.length;
   int get _score => (1000 - _avg).clamp(0, 1000);
 
-  Color get _bgColor {
-    switch (_phase) {
-      case _Phase.waiting:
-        return const Color(0xFF1A1A2E);
-      case _Phase.ready:
-        return const Color(0xFF0D4F3C);
-      case _Phase.tooEarly:
-        return const Color(0xFF4F1A0D);
-      case _Phase.done:
-        return const Color(0xFF1A1A2E);
-    }
-  }
-
   String get _instruction {
     switch (_phase) {
       case _Phase.waiting:
@@ -125,13 +113,13 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
   Color get _instructionColor {
     switch (_phase) {
       case _Phase.waiting:
-        return AppTheme.textSec;
+        return kTextMuted;
       case _Phase.ready:
-        return Colors.white;
+        return kYellow;
       case _Phase.tooEarly:
-        return AppTheme.coral;
+        return Colors.red;
       case _Phase.done:
-        return AppTheme.teal;
+        return kYellow;
     }
   }
 
@@ -140,81 +128,69 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
     return Scaffold(
       body: GestureDetector(
         onTap: _phase == _Phase.done ? null : _onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          color: _bgColor,
+        child: Container(
+          decoration: const BoxDecoration(gradient: kGameGradient),
           child: SafeArea(
             child: Stack(children: [
               Column(children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.close,
-                            color: Colors.white, size: 18),
-                      ),
+                GameHeader(
+                  title: 'Reaction Tap',
+                  actions: [ScoreBadge(score: _score)],
+                ),
+                const SizedBox(height: 20),
+
+                Text('Round ${_round + 1} / $_totalRounds',
+                    style: const TextStyle(color: kDark, fontSize: 14, fontWeight: FontWeight.w600)),
+
+                const Spacer(),
+
+                GameCard(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(
+                      color: _phase == _Phase.ready
+                          ? kYellow.withOpacity(0.1)
+                          : _phase == _Phase.tooEarly
+                              ? Colors.red.withOpacity(0.1)
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    const SizedBox(width: 12),
-                    const Text('Reaction Tap',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
-                    const Spacer(),
-                    Text('Round ${_round + 1} / $_totalRounds',
-                        style: const TextStyle(
-                            color: AppTheme.textSec, fontSize: 13)),
-                  ]),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 150),
+                          child: Icon(
+                            _phase == _Phase.ready ? Icons.bolt : Icons.circle_outlined,
+                            key: ValueKey(_phase),
+                            size: 100,
+                            color: _phase == _Phase.ready ? kYellow : kTextMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          _instruction,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: _instructionColor,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (_times.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          Text('Last: ${_times.last} ms',
+                              style: const TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
 
                 const Spacer(),
 
-                // Big icon
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    _phase == _Phase.ready
-                        ? Icons.bolt
-                        : Icons.circle_outlined,
-                    key: ValueKey(_phase),
-                    size: 100,
-                    color: _phase == _Phase.ready
-                        ? AppTheme.teal
-                        : Colors.white.withOpacity(0.4),
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // Instruction
-                Text(
-                  _instruction,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _instructionColor,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-
-                // Last reaction time
                 if (_times.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Text('Last: ${_times.last} ms',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 16)),
-                ],
-
-                const Spacer(),
-
-                // Previous attempts chips
-                if (_times.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Wrap(
@@ -223,28 +199,27 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
                       runSpacing: 8,
                       children: _times
                           .map((t) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 6, offset: const Offset(0, 2)),
+                                  ],
                                 ),
                                 child: Text('${t} ms',
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 12)),
+                                    style: const TextStyle(color: kDark, fontSize: 12, fontWeight: FontWeight.w600)),
                               ))
                           .toList(),
                     ),
                   ),
-
-                if (_times.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text('Average: $_avg ms',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 14)),
+                      style: const TextStyle(color: kDark, fontSize: 14, fontWeight: FontWeight.w600)),
                 ],
 
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
               ]),
 
               if (_showResult)

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -68,48 +69,48 @@ class _NumberSequenceScreenState extends State<NumberSequenceScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF0A1628), Color(0xFF1A3A5C)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Number Sequence', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
-          const SizedBox(height: 16),
-          ClipRRect(borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: _round / 8,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent), minHeight: 4)),
+          GameHeader(
+            title: 'Number Sequence',
+            actions: [ScoreBadge(score: _score)],
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GameProgressBar(value: _round / 8),
+          ),
           const Spacer(),
-          const Text('What comes next?', style: TextStyle(color: AppTheme.textSec, fontSize: 14)),
-          const SizedBox(height: 20),
-          Wrap(alignment: WrapAlignment.center, spacing: 12,
-            children: [
-              ..._sequence.map((n) => Container(
-                width: 60, height: 60,
-                decoration: BoxDecoration(color: AppTheme.accent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.accent.withOpacity(0.5))),
-                child: Center(child: Text('$n', style: const TextStyle(
-                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700))))),
-              Container(width: 60, height: 60,
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24, width: 2, style: BorderStyle.solid)),
-                child: Center(child: Text(_flash ?? '?',
-                  style: TextStyle(
-                    color: _flash == '✓' ? AppTheme.teal : _flash == '✗' ? AppTheme.coral : Colors.white54,
-                    fontSize: 24, fontWeight: FontWeight.w800)))),
-            ]),
+          GameCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('What comes next?', style: TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 24),
+                Wrap(alignment: WrapAlignment.center, spacing: 12,
+                  children: [
+                    ..._sequence.map((n) => Container(
+                      width: 60, height: 60,
+                      decoration: BoxDecoration(
+                        color: kYellow.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: kYellow.withOpacity(0.3), width: 2)),
+                      child: Center(child: Text('$n', style: const TextStyle(
+                        color: kDark, fontSize: 20, fontWeight: FontWeight.w700))))),
+                    Container(width: 60, height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: kYellow, width: 2)),
+                      child: Center(child: Text(_flash ?? '?',
+                        style: TextStyle(
+                          color: _flash == '✓' ? Colors.green : _flash == '✗' ? Colors.red : kTextMuted,
+                          fontSize: 24, fontWeight: FontWeight.w800)))),
+                  ]),
+              ],
+            ),
+          ),
           const Spacer(),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
             child: GridView.count(shrinkWrap: true, crossAxisCount: 2,
@@ -117,11 +118,15 @@ class _NumberSequenceScreenState extends State<NumberSequenceScreen> {
               children: _options.map((v) => GestureDetector(
                 onTap: () => _pick(v),
                 child: Container(
-                  decoration: BoxDecoration(color: Colors.white10,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white12)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.08),
+                          blurRadius: 6, offset: const Offset(0, 2)),
+                    ]),
                   child: Center(child: Text('$v',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white))))
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: kDark))))
               )).toList())),
           const SizedBox(height: 32),
         ]),

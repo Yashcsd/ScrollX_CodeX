@@ -20,11 +20,13 @@ class AppTheme {
   static const Color accent      = Color(0xFF7F77DD);
   static const Color accentLight = Color(0xFFAFA9EC);
   static const Color gold        = Color(0xFFF5C800);
+  static const Color yellow      = Color(0xFFE4D400); // Alias for primary yellow
   static const Color teal        = Color(0xFF1D9E75);
   static const Color coral       = Color(0xFFD85A30);
   static const Color pink        = Color(0xFFD4537E);
   static const Color blue        = Color(0xFF378ADD);
   static const Color green       = Color(0xFF639922);
+  static const Color textDark    = Color(0xFF1A1A1A); // Alias for dark text
 
   // ─── Game gradients (unchanged) ─────────────────────────────────────────────
   static const LinearGradient puzzleGrad = LinearGradient(

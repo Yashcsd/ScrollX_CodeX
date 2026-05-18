@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -24,7 +25,7 @@ class _Balloon {
 class _BalloonPopScreenState extends State<BalloonPopScreen> {
   final _rng = Random();
   static const List<Color> _colors = [
-    AppTheme.accent, AppTheme.teal, AppTheme.coral, AppTheme.gold, AppTheme.pink,
+    kYellow, kTeal, kCoral, Colors.orange, Colors.pink,
   ];
 
   List<_Balloon> _balloons = [];
@@ -105,31 +106,33 @@ class _BalloonPopScreenState extends State<BalloonPopScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A1628), Color(0xFF1E3A5F)])),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(child: Stack(children: [
           Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-              child: Row(children: [
-                GestureDetector(onTap: ()=>Navigator.pop(context),
-                  child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
-                const SizedBox(width: 12),
-                const Text('Balloon Pop', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                const Spacer(),
-                Text('$_timeLeft s', style: TextStyle(
-                  color: _timeLeft > 15 ? AppTheme.teal : AppTheme.coral, fontWeight: FontWeight.w700)),
-                const SizedBox(width: 12),
-                Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-              ])),
+            GameHeader(
+              title: 'Balloon Pop',
+              actions: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _timeLeft > 15 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: _timeLeft > 15 ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text('$_timeLeft s', style: TextStyle(
+                    color: _timeLeft > 15 ? Colors.green : Colors.red,
+                    fontSize: 13, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 8),
+                ScoreBadge(score: _score),
+              ],
+            ),
             Padding(padding: const EdgeInsets.fromLTRB(16,8,16,0),
               child: Row(children: [
-                const Text('Missed: ', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                const Text('Missed: ', style: TextStyle(color: kTextMuted, fontSize: 12)),
                 ...List.generate(5, (i) => Icon(
                   i < _missed ? Icons.close : Icons.circle,
-                  size: 12, color: i < _missed ? AppTheme.coral : Colors.white24)),
+                  size: 12, color: i < _missed ? Colors.red : kTextMuted.withOpacity(0.3))),
               ])),
           ]),
           // Balloons

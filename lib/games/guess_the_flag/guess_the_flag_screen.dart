@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -70,39 +71,43 @@ class _GuessTheFlagScreenState extends State<GuessTheFlagScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF1A0A2E), Color(0xFF2D1B69)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Guess the Flag', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('${_round+1}/10  $_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
+          GameHeader(
+            title: 'Guess the Flag',
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: kYellow.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kYellow.withOpacity(0.3)),
+                ),
+                child: Text('${_round+1}/10', style: const TextStyle(
+                  color: kDark, fontSize: 13, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 8),
+              ScoreBadge(score: _score),
+            ],
+          ),
           const SizedBox(height: 12),
-          ClipRRect(borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: (_round+1)/10,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent), minHeight: 4)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GameProgressBar(value: (_round+1)/10),
+          ),
           const Spacer(),
-          Text('Which country is this flag?', style: const TextStyle(color: AppTheme.textSec, fontSize: 15)),
+          const Text('Which country is this flag?', style: TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 24),
           Text(_current['flag']!, style: const TextStyle(fontSize: 100)),
           const Spacer(),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(children: _options.map((name) {
-              Color bg = Colors.white10, border = Colors.white12;
-              Color text = Colors.white;
+              Color bg = Colors.white, border = kTextMuted.withOpacity(0.3);
+              Color text = kDark;
               if (_answered) {
-                if (name == _current['name']) { bg = AppTheme.teal.withOpacity(0.25); border = AppTheme.teal; text = AppTheme.teal; }
-                else if (name == _selected)   { bg = AppTheme.coral.withOpacity(0.2); border = AppTheme.coral; text = AppTheme.coral; }
+                if (name == _current['name']) { bg = Colors.green.withOpacity(0.2); border = Colors.green; text = Colors.green; }
+                else if (name == _selected)   { bg = Colors.red.withOpacity(0.2); border = Colors.red; text = Colors.red; }
               }
               return GestureDetector(
                 onTap: () => _pick(name),
@@ -110,9 +115,9 @@ class _GuessTheFlagScreenState extends State<GuessTheFlagScreen> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: border)),
+                    border: Border.all(color: border), boxShadow: [kGameShadow]),
                   child: Row(children: [
-                    Text(name, style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w500)),
+                    Text(name, style: TextStyle(color: text, fontSize: 16, fontWeight: FontWeight.w600)),
                   ])));
             }).toList())),
           const SizedBox(height: 24),

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -80,42 +81,51 @@ class _AnagramRushScreenState extends State<AnagramRushScreen> {
   Widget build(BuildContext context) => Scaffold(
     resizeToAvoidBottomInset: true,
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF0D1E35), Color(0xFF1A3A2A)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Anagram Rush', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('$_timeLeft s', style: TextStyle(
-                color: _timeLeft > 20 ? AppTheme.teal : AppTheme.coral, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 12),
-              Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
-          const SizedBox(height: 16),
-          ClipRRect(borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: _timeLeft/45,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.teal), minHeight: 4)),
+          GameHeader(
+            title: 'Anagram Rush',
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _timeLeft > 20 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _timeLeft > 20 ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
+                ),
+                child: Text('$_timeLeft s', style: TextStyle(
+                  color: _timeLeft > 20 ? Colors.green : Colors.red,
+                  fontSize: 13, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 8),
+              ScoreBadge(score: _score),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GameProgressBar(value: _timeLeft/45),
+          ),
           const Spacer(),
-          const Text('Rearrange to make a valid word!',
-            style: TextStyle(color: AppTheme.textSec, fontSize: 14)),
-          const SizedBox(height: 20),
-          Text(_show, style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900,
-            color: Colors.white, letterSpacing: 8)),
-          if (_flash != null) ...[
-            const SizedBox(height: 12),
-            Text(_flash!, style: TextStyle(
-              color: _flash!.contains('✓') ? AppTheme.teal : AppTheme.coral,
-              fontSize: 14, fontWeight: FontWeight.w600)),
-          ],
+          GameCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Rearrange to make a valid word!',
+                  style: TextStyle(color: kDark, fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 20),
+                Text(_show, style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900,
+                  color: kDark, letterSpacing: 8)),
+                if (_flash != null) ...[
+                  const SizedBox(height: 12),
+                  Text(_flash!, style: TextStyle(
+                    color: _flash!.contains('✓') ? Colors.green : Colors.red,
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+                ],
+              ],
+            ),
+          ),
           const Spacer(),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(children: [
@@ -123,26 +133,33 @@ class _AnagramRushScreenState extends State<AnagramRushScreen> {
                 controller: _ctrl,
                 autofocus: true,
                 textCapitalization: TextCapitalization.characters,
-                style: const TextStyle(color: Colors.white, fontSize: 20, letterSpacing: 4),
+                style: const TextStyle(color: kDark, fontSize: 20, letterSpacing: 4, fontWeight: FontWeight.w600),
                 onSubmitted: (_) => _check(),
                 decoration: InputDecoration(
                   hintText: 'Type word…',
-                  hintStyle: const TextStyle(color: AppTheme.textMuted),
-                  filled: true, fillColor: Colors.white10,
+                  hintStyle: const TextStyle(color: kTextMuted),
+                  filled: true, fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppTheme.accent, width: 1.5))),
+                    borderSide: const BorderSide(color: kYellow, width: 2))),
               )),
               const SizedBox(width: 12),
-              ElevatedButton(onPressed: _check,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                child: const Icon(Icons.check, size: 22)),
+              GestureDetector(
+                onTap: _check,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: kYellow,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [kGameShadow],
+                  ),
+                  child: const Icon(Icons.check, size: 22, color: kDark)),
+              ),
             ])),
           const SizedBox(height: 16),
           TextButton(onPressed: () => setState(() => _load()),
-            child: const Text('Skip this word', style: TextStyle(color: AppTheme.textMuted))),
+            child: const Text('Skip this word', style: TextStyle(color: kTextMuted))),
           const SizedBox(height: 16),
         ]),
         if (_showResult) GameResultOverlay(

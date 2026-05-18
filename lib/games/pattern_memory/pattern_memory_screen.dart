@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -79,44 +80,48 @@ class _PatternMemoryScreenState extends State<PatternMemoryScreen> {
 
   Color _cellColor(int idx) {
     if (_phase == _Phase.showing) {
-      return _pattern.contains(idx) ? AppTheme.accent : Colors.white10;
+      return _pattern.contains(idx) ? kYellow : Colors.white;
     }
     if (_phase == _Phase.result) {
-      if (_pattern.contains(idx) && _userTaps.contains(idx)) return AppTheme.teal;
-      if (_pattern.contains(idx)) return AppTheme.coral;
-      if (_userTaps.contains(idx)) return AppTheme.coral.withOpacity(0.4);
-      return Colors.white10;
+      if (_pattern.contains(idx) && _userTaps.contains(idx)) return Colors.green;
+      if (_pattern.contains(idx)) return Colors.red;
+      if (_userTaps.contains(idx)) return Colors.red.withOpacity(0.4);
+      return Colors.white;
     }
-    return _userTaps.contains(idx) ? AppTheme.accent.withOpacity(0.6) : Colors.white10;
+    return _userTaps.contains(idx) ? kYellow.withOpacity(0.6) : Colors.white;
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0xFF0D1B33), Color(0xFF1A2D55)])),
+      decoration: const BoxDecoration(gradient: kGameGradient),
       child: SafeArea(child: Stack(children: [
         Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Pattern Memory', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('Round $_round  $_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
+          GameHeader(
+            title: 'Pattern Memory',
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: kYellow.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kYellow.withOpacity(0.3)),
+                ),
+                child: Text('Round $_round', style: const TextStyle(
+                  color: kDark, fontSize: 13, fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 8),
+              ScoreBadge(score: _score),
+            ],
+          ),
           const SizedBox(height: 20),
           Text(
             _phase == _Phase.showing ? '👀 Memorize the pattern!' :
             _phase == _Phase.input   ? '🖐 Tap the same cells!' :
                                        '✓ Checking…',
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+            style: const TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 20),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 24),
+          GameCard(
             child: GridView.count(shrinkWrap: true, crossAxisCount: _grid,
               mainAxisSpacing: 8, crossAxisSpacing: 8,
               children: List.generate(_grid * _grid, (i) => GestureDetector(
@@ -125,13 +130,14 @@ class _PatternMemoryScreenState extends State<PatternMemoryScreen> {
                   decoration: BoxDecoration(
                     color: _cellColor(i),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white12),
-                  )))))),
+                    boxShadow: [kGameShadow],
+                  ))))),
+          ),
           const SizedBox(height: 24),
           if (_phase == _Phase.input)
-            ElevatedButton(
-              onPressed: _confirm,
-              child: const Text('Confirm Pattern'),
+            YellowButton(
+              onTap: _confirm,
+              label: 'Confirm Pattern',
             ),
           const Spacer(),
         ]),

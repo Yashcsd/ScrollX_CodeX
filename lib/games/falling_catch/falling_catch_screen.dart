@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -88,24 +89,26 @@ class _FallingCatchScreenState extends State<FallingCatchScreen> {
           _basketX = (_basketX + d.delta.dx / size.width).clamp(0.08, 0.92);
         }),
         child: Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            colors: [Color(0xFF0A0A1E), Color(0xFF1A1A3E)])),
+          decoration: const BoxDecoration(gradient: kGameGradient),
           child: SafeArea(child: Stack(children: [
             // Header
             Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
               child: Row(children: [
                 GestureDetector(onTap: ()=>Navigator.pop(context),
                   child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [kGameShadow],
+                    ),
+                    child: const Icon(Icons.close, color: kDark, size: 18))),
                 const SizedBox(width: 12),
-                const Text('Falling Catch', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+                const Text('Falling Catch', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: kDark)),
                 const Spacer(),
                 Row(children: List.generate(3, (i) => Icon(
-                  Icons.favorite, size: 18, color: i < _lives ? AppTheme.pink : Colors.white12))),
+                  Icons.favorite, size: 18, color: i < _lives ? Colors.pink : kTextMuted.withOpacity(0.3)))),
                 const SizedBox(width: 12),
-                Text('$_score', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700, fontSize: 16)),
+                ScoreBadge(score: _score),
               ])),
             // Falling items
             for (final item in _items)
@@ -121,7 +124,7 @@ class _FallingCatchScreenState extends State<FallingCatchScreen> {
             // Timer
             Positioned(bottom: 20, left: 0, right: 0,
               child: Center(child: Text('$_timeLeft s', style: TextStyle(
-                color: _timeLeft > 15 ? AppTheme.teal : AppTheme.coral,
+                color: _timeLeft > 15 ? Colors.green : Colors.red,
                 fontSize: 14, fontWeight: FontWeight.w700)))),
             if (_showResult) GameResultOverlay(
               score: _score, xpEarned: _score >= 150 ? 120 : 20, won: _score >= 150,

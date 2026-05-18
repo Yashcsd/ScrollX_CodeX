@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -98,35 +99,29 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cellSize = (MediaQuery.of(context).size.width - 32) / _cols;
+    final cellSize = (MediaQuery.of(context).size.width - 48) / _cols;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A1A0A), Color(0xFF0D2E0D)])),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(child: Stack(children: [
           Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-              child: Row(children: [
-                GestureDetector(onTap: ()=>Navigator.pop(context),
-                  child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
-                const SizedBox(width: 12),
-                const Text('Snake Lite', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                const Spacer(),
-                Text('$_score pts', style: const TextStyle(color: AppTheme.teal, fontWeight: FontWeight.w700, fontSize: 16)),
-              ])),
-            const SizedBox(height: 8),
+            GameHeader(
+              title: 'Snake Lite',
+              actions: [ScoreBadge(score: _score)],
+            ),
+            const SizedBox(height: 12),
             if (!_started)
               Container(margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppTheme.teal.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kYellow.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kYellow.withOpacity(0.3)),
+                ),
                 child: const Text('Swipe to start & steer!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.teal, fontSize: 13))),
-            const SizedBox(height: 8),
+                  style: TextStyle(color: kDark, fontSize: 14, fontWeight: FontWeight.w600))),
+            const SizedBox(height: 12),
             GestureDetector(
               onPanUpdate: _swipe,
               onTap: () { if (!_started) _start(); },
@@ -135,17 +130,20 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
                 width: double.infinity,
                 height: cellSize * _rows,
                 decoration: BoxDecoration(
-                  color: Colors.black26,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.teal.withOpacity(0.3)),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [kGameShadow],
                 ),
-                child: CustomPaint(painter: _SnakePainter(
-                  snake: _snake, food: _food,
-                  cols: _cols, rows: _rows, cellSize: cellSize,
-                )),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: CustomPaint(painter: _SnakePainter(
+                    snake: _snake, food: _food,
+                    cols: _cols, rows: _rows, cellSize: cellSize,
+                  )),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               _dirBtn(Icons.arrow_upward,    () => { if (_dir.y==0) _nextDir=const Point(0,-1) }),
             ]),
@@ -172,10 +170,12 @@ class _SnakeLiteScreenState extends State<SnakeLiteScreen> {
   Widget _dirBtn(IconData icon, VoidCallback fn) => GestureDetector(
     onTap: () { if (!_started) _start(); fn(); },
     child: Container(width: 48, height: 48, margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: AppTheme.teal.withOpacity(0.2),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.teal.withOpacity(0.4))),
-      child: Icon(icon, color: AppTheme.teal, size: 22)),
+        boxShadow: [kGameShadow],
+      ),
+      child: Icon(icon, color: kDark, size: 22)),
   );
 }
 
@@ -190,9 +190,9 @@ class _SnakePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final headPaint  = Paint()..color = AppTheme.teal;
-    final bodyPaint  = Paint()..color = AppTheme.teal.withOpacity(0.6);
-    final foodPaint  = Paint()..color = AppTheme.coral;
+    final headPaint  = Paint()..color = kYellow;
+    final bodyPaint  = Paint()..color = kYellow.withOpacity(0.6);
+    final foodPaint  = Paint()..color = Colors.red;
 
     for (int i = 0; i < snake.length; i++) {
       final p = snake[i];

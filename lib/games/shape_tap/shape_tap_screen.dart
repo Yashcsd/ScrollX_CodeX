@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -24,7 +25,7 @@ class _Shape {
 class _ShapeTapScreenState extends State<ShapeTapScreen> {
   final _rng = Random();
   static const _types = ['circle','square','triangle','star'];
-  static const _colors = [AppTheme.accent, AppTheme.teal, AppTheme.coral, AppTheme.gold, AppTheme.pink];
+  static const _colors = [AppTheme.primary, Colors.teal, Colors.red, Colors.orange, Colors.pink];
 
   List<_Shape> _shapes = [];
   String _target = 'circle';
@@ -113,43 +114,37 @@ class _ShapeTapScreenState extends State<ShapeTapScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFF1A001A), Color(0xFF3D0050)])),
+        decoration: const BoxDecoration(gradient: kGameGradient),
         child: SafeArea(child: Stack(children: [
           Column(children: [
-            Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-              child: Row(children: [
-                GestureDetector(onTap: ()=>Navigator.pop(context),
-                  child: Container(padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.close, color: Colors.white, size: 18))),
-                const SizedBox(width: 12),
-                const Text('Shape Tap', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                const Spacer(),
+            GameHeader(
+              title: 'Shape Tap',
+              actions: [
                 Row(children: List.generate(3, (i) => Icon(Icons.favorite, size: 18,
-                  color: i < _lives ? AppTheme.pink : Colors.white12))),
+                  color: i < _lives ? Colors.pink : kTextMuted.withOpacity(0.3)))),
                 const SizedBox(width: 12),
-                Text('$_score', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700, fontSize: 16)),
-              ])),
+                ScoreBadge(score: _score),
+              ],
+            ),
             const SizedBox(height: 12),
             Container(margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(color: AppTheme.accent.withOpacity(0.15),
+              decoration: BoxDecoration(
+                color: kYellow.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.accent.withOpacity(0.4))),
+                border: Border.all(color: kYellow.withOpacity(0.4))),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Text('Tap all the  ', style: TextStyle(color: Colors.white, fontSize: 16)),
+                const Text('Tap all the  ', style: TextStyle(color: kDark, fontSize: 16)),
                 Text(_target.toUpperCase(),
-                  style: const TextStyle(color: AppTheme.accent, fontSize: 16, fontWeight: FontWeight.w800)),
-                const Text('s!', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  style: const TextStyle(color: kDark, fontSize: 16, fontWeight: FontWeight.w800)),
+                const Text('s!', style: TextStyle(color: kDark, fontSize: 16)),
               ])),
           ]),
           for (int i = 0; i < _shapes.length; i++)
             _drawShape(_shapes[i], size.width, size.height),
           Positioned(bottom: 16, left: 0, right: 0,
             child: Center(child: Text('$_timeLeft s', style: TextStyle(
-              color: _timeLeft > 15 ? AppTheme.textSec : AppTheme.coral,
+              color: _timeLeft > 15 ? Colors.green : Colors.red,
               fontSize: 14, fontWeight: FontWeight.w600)))),
           if (_showResult) GameResultOverlay(
             score: _score, xpEarned: _score >= 120 ? 120 : 20, won: _score >= 120,
