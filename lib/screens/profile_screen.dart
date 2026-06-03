@@ -49,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Row(children: [
@@ -67,13 +67,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel',
                 style: TextStyle(color: AppTheme.textSec)),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               await context.read<UserProvider>().deleteAccount();
             },
             style: ElevatedButton.styleFrom(
@@ -86,6 +86,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _openSettingsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            ),
+            boxShadow: const [AppTheme.hardShadowStrong],
+            border: Border.all(color: AppTheme.dark, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: AppTheme.border,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.coral, width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: AppTheme.coral,
+                        blurRadius: 0,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.delete_outline_rounded, color: AppTheme.coral, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          color: AppTheme.coral,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.bgCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.dark, width: 1.5),
+                    boxShadow: const [AppTheme.hardShadowSmall],
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -238,6 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
               setState(() => _editing = !_editing);
             },
+            onDeleteTap: () => _openSettingsSheet(context),
           ),
         ),
 
@@ -374,12 +479,14 @@ class _ProfileHeaderCard extends StatelessWidget {
   final bool editing;
   final TextEditingController nameController;
   final VoidCallback onEditToggle;
+  final VoidCallback onDeleteTap;
 
   const _ProfileHeaderCard({
     required this.user,
     required this.editing,
     required this.nameController,
     required this.onEditToggle,
+    required this.onDeleteTap,
   });
 
   String _fmtXp(int xp) {
@@ -497,27 +604,49 @@ class _ProfileHeaderCard extends StatelessWidget {
                   ),
                 ),
 
-                // Edit + QR column
+                // Edit + Settings + QR column
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    GestureDetector(
-                      onTap: onEditToggle,
-                      child: Container(
-                        width: 32, height: 32,
-                        decoration: BoxDecoration(
-                          color: AppTheme.bgCard,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.border),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: onEditToggle,
+                          child: Container(
+                            width: 32, height: 32,
+                            decoration: BoxDecoration(
+                              color: AppTheme.bgCard,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.border),
+                            ),
+                            child: Icon(
+                              editing
+                                  ? Icons.check_rounded
+                                  : Icons.edit_outlined,
+                              size: 16,
+                              color: AppTheme.textSec,
+                            ),
+                          ),
                         ),
-                        child: Icon(
-                          editing
-                              ? Icons.check_rounded
-                              : Icons.edit_outlined,
-                          size: 16,
-                          color: AppTheme.textSec,
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: onDeleteTap,
+                          child: Container(
+                            width: 32, height: 32,
+                            decoration: BoxDecoration(
+                              color: AppTheme.bgCard,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.border),
+                            ),
+                            child: const Icon(
+                              Icons.settings_outlined,
+                              size: 16,
+                              color: AppTheme.textSec,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     // QR placeholder

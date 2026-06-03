@@ -1,8 +1,14 @@
 // lib/screens/feed_screen.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../core/app_theme.dart';
+import '../models/game_social_metadata.dart';
+import '../services/game_social_service.dart';
 import '../services/user_provider.dart';
+import '../widgets/social_engagement_panel.dart';
 
 import '../games/slide_puzzle/slide_puzzle_screen.dart';
 import '../games/trivia_quiz/trivia_quiz_screen.dart';
@@ -281,19 +287,53 @@ class _FeedScreenState extends State<FeedScreen> {
   final _ctrl = PageController();
 
   @override
+  void initState() {
+    super.initState();
+    unawaited(_seedFeedSocialStats());
+  }
+
+  @override
   void dispose() {
     _ctrl.dispose();
     super.dispose();
   }
 
   void _play(FeedGame g) {
+    final userId = context.read<UserProvider>().user?.id;
+    unawaited(GameSocialService.recordPlay(
+      gameId: g.id,
+      userId: userId,
+      metadata: GameSocialMetadata(
+        gameId: g.id,
+        name: g.name,
+        description: g.description,
+        emoji: g.emoji,
+        tag: g.tag,
+        rating: g.rating,
+      ),
+    ));
     Navigator.push(context, MaterialPageRoute(builder: (_) => g.buildScreen()));
+  }
+
+  Future<void> _seedFeedSocialStats() async {
+    for (final game in allFeedGames) {
+      await GameSocialService.seedStats(
+        metadata: GameSocialMetadata(
+          gameId: game.id,
+          name: game.name,
+          description: game.description,
+          emoji: game.emoji,
+          tag: game.tag,
+          rating: game.rating,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().user;
-
+    final provider = context.watch<UserProvider>();
+    final user = provider.user;
     return Stack(children: [
       PageView.builder(
         controller: _ctrl,
@@ -311,11 +351,15 @@ class _FeedScreenState extends State<FeedScreen> {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Row(children: [
-            const _ScrollXBrandBadge(),
-            const Spacer(),
-            if (user != null) _FeedXpPill(xp: user.totalXp),
-          ]),
+          child: Column(
+            children: [
+              Row(children: [
+                const _ScrollXBrandBadge(),
+                const Spacer(),
+                if (user != null) _FeedXpPill(xp: user.totalXp),
+              ]),
+            ],
+          ),
         ),
       ),
     ]);
@@ -369,7 +413,6 @@ class _FeedXpPill extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.black,
           borderRadius: BorderRadius.circular(16),
-          
         ),
         child: Row(children: [
           const Text('⚡', style: TextStyle(fontSize: 12)),
@@ -395,17 +438,29 @@ class _FeedCard extends StatelessWidget {
 
   const _FeedCard({required this.game, required this.onPlay});
 
-  String _fmt(int n) {
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(0)}k';
-    return '$n';
+  @override
+  Widget build(BuildContext context) {
+    return _FeedCardView(
+      game: game,
+      onPlay: onPlay,
+    );
   }
+}
+
+class _FeedCardView extends StatelessWidget {
+  final FeedGame game;
+  final VoidCallback onPlay;
+
+  const _FeedCardView({
+    required this.game,
+    required this.onPlay,
+  });
 
   @override
   Widget build(BuildContext context) {
     final screenSize  = MediaQuery.of(context).size;
     final topPad      = MediaQuery.of(context).padding.top;
-    final bottomPad   = 20;
-    context.watch<UserProvider>(); // keep provider alive for XP updates
+    const bottomPad   = 20.0;
 
     // Poster: square, 80% of screen width, 25% border radius
     final posterSize  = screenSize.width * 0.80;
@@ -420,7 +475,7 @@ class _FeedCard extends StatelessWidget {
     final posterTop   = topPad + (availableH - posterSize) / 2;
 
     // Bottom info sits just above the nav bar
-    final infoBottom  = bottomPad + navHeight + 35;
+    const infoBottom  = bottomPad + navHeight + 35;
 
     return Stack(children: [
       // ── Full-screen gradient background ───────────────────────────────
@@ -492,19 +547,21 @@ class _FeedCard extends StatelessWidget {
         ),
       ),
 
-      // ── Right side actions ─────────────────────────────────────────────
+      // ── Reusable real-time social engagement panel ─────────────────────
       Positioned(
         right: 20,
         bottom: infoBottom + 40,
-        child: Column(children: [
-          _SideAction(icon: Icons.favorite_rounded,   label: _fmt(game.likes),    color: Colors.white),
-          const SizedBox(height: 20),
-          _SideAction(icon: Icons.chat_bubble_rounded, label: _fmt(game.comments), color: Colors.white),
-          const SizedBox(height: 20),
-          _SideAction(icon: Icons.near_me_rounded,    label: _fmt(game.shares),   color: Colors.white),
-          const SizedBox(height: 20),
-          _SideAction(icon: Icons.more_horiz_rounded, label: '',                  color: Colors.white),
-        ]),
+        child: SocialEngagementPanel(
+          gameId: game.id,
+          metadata: GameSocialMetadata(
+            gameId: game.id,
+            name: game.name,
+            description: game.description,
+            emoji: game.emoji,
+            tag: game.tag,
+            rating: game.rating,
+          ),
+        ),
       ),
 
       // ── Bottom info + play button ──────────────────────────────────────
@@ -565,24 +622,40 @@ class _FeedCard extends StatelessWidget {
                     border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: Center(
-                    child: Text(game.emoji,
-                        style: const TextStyle(fontSize: 18)),
+                    child: Text(
+                      game.emoji,
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Text(
-                  'your.game',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600),
+                Text(
+                  'your.${game.id}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(Icons.verified_rounded,
-                    color: Colors.white, size: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'PLAY',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
               ]),
-              const SizedBox(height: 6),
-              // 3 — Description (subtext)
+              const SizedBox(height: 8),
+              // 3 — description
               Text(
                 game.description,
                 style: const TextStyle(
@@ -596,32 +669,4 @@ class _FeedCard extends StatelessWidget {
       ),
     ]);
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Side action button
-// ─────────────────────────────────────────────────────────────────────────────
-class _SideAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _SideAction({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) => Column(children: [
-    Icon(icon, color: color, size: 28),
-    if (label.isNotEmpty) ...[
-      const SizedBox(height: 4),
-      Text(label,
-          style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600)),
-    ],
-  ]);
 }

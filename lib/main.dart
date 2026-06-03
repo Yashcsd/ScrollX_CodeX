@@ -6,15 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
 import 'core/app_theme.dart';
+import 'providers/social_provider.dart';
 import 'screens/feed_screen.dart';
 import 'screens/games_screen.dart';
 import 'screens/leaderboard_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/profile_screen.dart';
+import 'services/supabase_service.dart';
 import 'services/user_provider.dart';
 
 Future<void> main() async {
@@ -27,13 +26,14 @@ Future<void> main() async {
     statusBarIconBrightness: Brightness.light,
   ));
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await SupabaseService.initialize();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => UserProvider()..initialize(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()..initialize()),
+        ChangeNotifierProvider(create: (_) => SocialProvider()),
+      ],
       child: const ScrollXApp(),
     ),
   );

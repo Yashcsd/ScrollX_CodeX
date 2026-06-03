@@ -1,5 +1,5 @@
 // lib/models/score_model.dart
-// No Firebase imports — pure Dart model
+// Pure Dart score model for local gameplay records.
 class ScoreModel {
   final String   id;
   final String   userId;

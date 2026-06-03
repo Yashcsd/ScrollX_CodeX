@@ -74,6 +74,7 @@ class _SlidePuzzleScreenState extends State<SlidePuzzleScreen> {
   void _onWin() {
     _timer?.cancel(); _won = true;
     Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
       setState(() => _showResult = true);
       context.read<UserProvider>().recordGameResult(
         gameId: 'slide_puzzle', gameName: 'Slide Puzzle',

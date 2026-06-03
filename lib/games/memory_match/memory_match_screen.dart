@@ -60,6 +60,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
     _timer?.cancel(); _won = true;
     final score = (800 - _moves * 10 - _seconds * 2).clamp(100, 800);
     Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
       setState(() => _showResult = true);
       context.read<UserProvider>().recordGameResult(
         gameId: 'memory_match', gameName: 'Memory Match',
