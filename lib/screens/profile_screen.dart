@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../core/app_theme.dart';
 import '../services/user_provider.dart';
+import '../services/audio_service.dart';
 import 'feed_screen.dart'; // for allFeedGames
 
 class ProfileScreen extends StatefulWidget {
@@ -94,100 +95,207 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(28),
-              topRight: Radius.circular(28),
-            ),
-            boxShadow: const [AppTheme.hardShadowStrong],
-            border: Border.all(color: AppTheme.dark, width: 2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 48,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(999),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
                 ),
+                boxShadow: const [AppTheme.hardShadowStrong],
+                border: Border.all(color: AppTheme.dark, width: 2),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Settings',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete(context);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.coral, width: 1.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppTheme.coral,
-                        blurRadius: 0,
-                        offset: Offset(0, 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: AppTheme.border,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Center(
+                    child: Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.volume_up_rounded, color: AppTheme.dark),
+                          SizedBox(width: 10),
+                          Text(
+                            'Audio Muted',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: AudioService.isMuted,
+                        activeTrackColor: AppTheme.primary,
+                        onChanged: (val) async {
+                          await AudioService.toggleMute(val);
+                          setModalState(() {});
+                        },
                       ),
                     ],
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.delete_outline_rounded, color: AppTheme.coral, size: 20),
-                      SizedBox(width: 8),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Music Volume',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSec,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Icons.music_note_rounded, size: 16, color: AppTheme.textMuted),
+                      Expanded(
+                        child: Slider(
+                          value: AudioService.musicVolume,
+                          activeColor: AppTheme.primary,
+                          inactiveColor: AppTheme.border,
+                          onChanged: AudioService.isMuted
+                              ? null
+                              : (val) async {
+                                  await AudioService.setMusicVolume(val);
+                                  setModalState(() {});
+                                },
+                        ),
+                      ),
                       Text(
-                        'Delete Account',
-                        style: TextStyle(
-                          color: AppTheme.coral,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
+                        '${(AudioService.musicVolume * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textSec,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.bgCard,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.dark, width: 1.5),
-                    boxShadow: const [AppTheme.hardShadowSmall],
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    textAlign: TextAlign.center,
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Sound Effects Volume',
                     style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSec,
                     ),
                   ),
-                ),
+                  Row(
+                    children: [
+                      const Icon(Icons.volume_down_rounded, size: 16, color: AppTheme.textMuted),
+                      Expanded(
+                        child: Slider(
+                          value: AudioService.sfxVolume,
+                          activeColor: AppTheme.primary,
+                          inactiveColor: AppTheme.border,
+                          onChanged: AudioService.isMuted
+                              ? null
+                              : (val) async {
+                                  await AudioService.setSfxVolume(val);
+                                  setModalState(() {});
+                                },
+                        ),
+                      ),
+                      Text(
+                        '${(AudioService.sfxVolume * 100).toInt()}%',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textSec,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _confirmDelete(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.coral, width: 1.5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppTheme.coral,
+                            blurRadius: 0,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.delete_outline_rounded, color: AppTheme.coral, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Delete Account',
+                            style: TextStyle(
+                              color: AppTheme.coral,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.bgCard,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.dark, width: 1.5),
+                        boxShadow: const [AppTheme.hardShadowSmall],
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
-              const SizedBox(height: 8),
-            ],
-          ),
+            );
+          },
         );
       },
     );

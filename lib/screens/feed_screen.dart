@@ -8,6 +8,10 @@ import '../core/app_theme.dart';
 import '../models/game_social_metadata.dart';
 import '../services/game_social_service.dart';
 import '../services/user_provider.dart';
+import '../services/haptics_service.dart';
+import '../services/audio_service.dart';
+import '../widgets/anti_gravity.dart';
+import '../widgets/bounce_press.dart';
 import '../widgets/social_engagement_panel.dart';
 
 import '../games/slide_puzzle/slide_puzzle_screen.dart';
@@ -339,6 +343,10 @@ class _FeedScreenState extends State<FeedScreen> {
         controller: _ctrl,
         scrollDirection: Axis.vertical,
         itemCount: null,
+        onPageChanged: (_) {
+          HapticsService.selection();
+          AudioService.playSfx('swipe');
+        },
         itemBuilder: (_, i) {
           final idx = i % allFeedGames.length;
           return _FeedCard(
@@ -497,53 +505,56 @@ class _FeedCardView extends StatelessWidget {
       Positioned(
         left: (screenSize.width - posterSize) / 2,
         top: posterTop.clamp(topPad + 60.0, screenSize.height * 0.5),
-        child: Container(
-          width: posterSize,
-          height: posterSize,
-          decoration: BoxDecoration(
-            gradient: game.gradient,
-            borderRadius: BorderRadius.circular(posterRadius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.35),
-              width: 2,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0xFF1A1A1A), // solid dark — 3px hard shadow
-                blurRadius: 0,
-                offset: Offset(0, 3),
+        child: AntiGravityWidget(
+          driftPixels: 3.0,
+          child: Container(
+            width: posterSize,
+            height: posterSize,
+            decoration: BoxDecoration(
+              gradient: game.gradient,
+              borderRadius: BorderRadius.circular(posterRadius),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35),
+                width: 2,
               ),
-            ],
-          ),
-          child: Stack(children: [
-            // Large emoji centred
-            Center(
-              child: Text(
-                game.emoji,
-                style: TextStyle(fontSize: posterSize * 0.30),
-              ),
-            ),
-            // Tag badge top-left
-            Positioned(
-              top: 14, left: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF1A1A1A), // solid dark — 3px hard shadow
+                  blurRadius: 0,
+                  offset: Offset(0, 3),
                 ),
+              ],
+            ),
+            child: Stack(children: [
+              // Large emoji centred
+              Center(
                 child: Text(
-                  game.tag,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
+                  game.emoji,
+                  style: TextStyle(fontSize: posterSize * 0.30),
+                ),
+              ),
+              // Tag badge top-left
+              Positioned(
+                top: 14, left: 14,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    game.tag,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ]),
+            ]),
+          ),
         ),
       ),
 
@@ -576,7 +587,7 @@ class _FeedCardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1 — Play button
-              GestureDetector(
+              BouncePressWidget(
                 onTap: onPlay,
                 child: Container(
                   height: 52,

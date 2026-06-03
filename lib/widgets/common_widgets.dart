@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../core/app_theme.dart';
+import '../services/haptics_service.dart';
+import '../services/audio_service.dart';
 
 // ── XP Progress Bar ────────────────────────────────────────────────────────────
 class XpBarWidget extends StatelessWidget {
@@ -138,7 +140,7 @@ class StatCard extends StatelessWidget {
 }
 
 // ── Game result overlay (shown after win/loss) ────────────────────────────────
-class GameResultOverlay extends StatelessWidget {
+class GameResultOverlay extends StatefulWidget {
   final int      score;
   final int      xpEarned;
   final bool     won;
@@ -155,6 +157,27 @@ class GameResultOverlay extends StatelessWidget {
   });
 
   @override
+  State<GameResultOverlay> createState() => _GameResultOverlayState();
+}
+
+class _GameResultOverlayState extends State<GameResultOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    _triggerHaptics();
+  }
+
+  Future<void> _triggerHaptics() async {
+    if (widget.won) {
+      AudioService.playSfx('success');
+      await HapticsService.successSequence();
+    } else {
+      AudioService.playSfx('fail');
+      await HapticsService.failureSequence();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => Container(
     color: const Color(0xDD000000), // near-opaque solid dark overlay
     child: Center(
@@ -165,7 +188,7 @@ class GameResultOverlay extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: won ? AppTheme.teal : AppTheme.coral,
+            color: widget.won ? AppTheme.teal : AppTheme.coral,
             width: 2,
           ),
           boxShadow: const [
@@ -179,28 +202,28 @@ class GameResultOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(won ? '🏆' : '💀',
+            Text(widget.won ? '🏆' : '💀',
                 style: const TextStyle(fontSize: 52))
                 .animate()
                 .scale(duration: 500.ms, curve: Curves.elasticOut),
             const SizedBox(height: 12),
             Text(
-              won ? 'Well Played!' : 'Game Over',
+              widget.won ? 'Well Played!' : 'Game Over',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: won ? AppTheme.teal : AppTheme.coral,
+                color: widget.won ? AppTheme.teal : AppTheme.coral,
               ),
             ).animate().slideY(begin: 0.3, duration: 400.ms, delay: 200.ms),
             const SizedBox(height: 20),
-            _row('Score',     '$score pts', AppTheme.dark),
+            _row('Score',     '${widget.score} pts', AppTheme.dark),
             const SizedBox(height: 8),
-            _row('XP Earned', '+$xpEarned XP', AppTheme.primary),
+            _row('XP Earned', '+${widget.xpEarned} XP', AppTheme.primary),
             const SizedBox(height: 28),
             Row(children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onRetry,
+                  onPressed: widget.onRetry,
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppTheme.border, width: 1.5),
                     foregroundColor: AppTheme.textSec,
@@ -215,7 +238,7 @@ class GameResultOverlay extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: onContinue,
+                  onPressed: widget.onContinue,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
                     foregroundColor: AppTheme.dark,
@@ -231,7 +254,7 @@ class GameResultOverlay extends StatelessWidget {
           ],
         ),
       ).animate().slideY(begin: 0.5, duration: 500.ms,
-          curve: Curves.easeOutCubic),
+          curve: Curves.easeOutCubic).then().shake(duration: widget.won ? 0.ms : 600.ms, hz: 7),
     ),
   );
 

@@ -10,6 +10,7 @@ import '../models/game_social_model.dart';
 import '../models/user_model.dart';
 import '../services/game_social_service.dart';
 import '../services/user_provider.dart';
+import '../widgets/bounce_press.dart';
 import 'common_widgets.dart';
 
 class SocialEngagementPanel extends StatefulWidget {
@@ -218,7 +219,7 @@ class _SideAction extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => BouncePressWidget(
         onTap: onTap,
         child: Column(
           children: [

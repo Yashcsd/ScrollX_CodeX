@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
 import '../models/user_model.dart';
 import '../services/user_provider.dart';
+import '../widgets/anti_gravity.dart';
+import '../widgets/bounce_press.dart';
 
 const _kYellow     = Color(0xFFE4D400);
 const _kYellowDark = Color(0xFFB89800); // solid mustard — no opacity
@@ -91,7 +93,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               Container(
                 color: _kYellow,
                 padding: EdgeInsets.fromLTRB(16, topPad + 12, 16, 24),
-                child: _HeroCard(topUser: topUser)
+                child: AntiGravityWidget(
+                  driftPixels: 2.0,
+                  child: _HeroCard(topUser: topUser),
+                )
                     .animate()
                     .fadeIn(duration: 450.ms)
                     .slideY(begin: -0.06, end: 0,
@@ -357,7 +362,7 @@ class _FilterPill extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => BouncePressWidget(
     onTap: onTap,
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -425,144 +430,138 @@ class _RankTile extends StatefulWidget {
 }
 
 class _RankTileState extends State<_RankTile> {
-  bool _pressed = false;
-
   @override
   Widget build(BuildContext context) {
     final ring = _ringColor(widget.rank);
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          decoration: BoxDecoration(
-            color: widget.isMe
-                ? const Color(0xFFFFFBCC)
-                : const Color(0xFFF8F8F4), // lighter warm surface
-            borderRadius: BorderRadius.circular(20),
-            border: widget.isMe
-                ? Border.all(color: _kYellow, width: 1.5)
-                : null,
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0xFFDDDCCC), // very subtle warm grey — barely visible
-                blurRadius: 0,
-                offset: Offset(0, 1), // reduced from 3 to 1
-              ),
-            ],
-          ),
-          child: Row(children: [
-            // Glow ring avatar — stronger border
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: ring, width: 3),
-                color: _ringBg(widget.rank),
-                boxShadow: [
-                  BoxShadow(
-                    color: _ringShadow(widget.rank),
-                    blurRadius: 0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  widget.user.avatarInitials,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: _kDark,
-                  ),
-                ),
-              ),
+    return BouncePressWidget(
+      onTap: () {
+        // Option to trigger selection or detail view
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: widget.isMe
+              ? const Color(0xFFFFFBCC)
+              : const Color(0xFFF8F8F4), // lighter warm surface
+          borderRadius: BorderRadius.circular(20),
+          border: widget.isMe
+              ? Border.all(color: _kYellow, width: 1.5)
+              : null,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFFDDDCCC), // very subtle warm grey — barely visible
+              blurRadius: 0,
+              offset: Offset(0, 1), // reduced from 3 to 1
             ),
-
-            const SizedBox(width: 12),
-
-            // Rank
-            SizedBox(
-              width: 42,
-              child: Text(
-                '#${widget.rank.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: _kDark,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-
-            // Username + You badge
-            Expanded(
-              child: Row(children: [
-                Flexible(
-                  child: Text(
-                    '@${widget.user.username}',
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (widget.isMe) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _kDark,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'You',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ]),
-            ),
-
-            // XP pill — pure black + yellow text, tighter
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: _kDark,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0xFF0A0A0A), // solid near-black
-                    blurRadius: 0,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Text(
-                _fmtXp(widget.user.totalXp),
-                style: const TextStyle(
-                  color: _kYellow,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ]),
+          ],
         ),
+        child: Row(children: [
+          // Glow ring avatar — stronger border
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: ring, width: 3),
+              color: _ringBg(widget.rank),
+              boxShadow: [
+                BoxShadow(
+                  color: _ringShadow(widget.rank),
+                  blurRadius: 0,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                widget.user.avatarInitials,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: _kDark,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Rank
+          SizedBox(
+            width: 42,
+            child: Text(
+              '#${widget.rank.toString().padLeft(2, '0')}',
+              style: const TextStyle(
+                color: _kDark,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+
+          // Username + You badge
+          Expanded(
+            child: Row(children: [
+              Flexible(
+                child: Text(
+                  '@${widget.user.username}',
+                  style: const TextStyle(
+                    color: Color(0xFF888888),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (widget.isMe) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _kDark,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'You',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ]),
+          ),
+
+          // XP pill — pure black + yellow text, tighter
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: _kDark,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF0A0A0A), // solid near-black
+                  blurRadius: 0,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              _fmtXp(widget.user.totalXp),
+              style: const TextStyle(
+                color: _kYellow,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }

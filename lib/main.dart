@@ -15,6 +15,10 @@ import 'screens/onboarding_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/supabase_service.dart';
 import 'services/user_provider.dart';
+import 'services/haptics_service.dart';
+import 'services/audio_service.dart';
+import 'widgets/anti_gravity.dart';
+import 'widgets/particles_bg.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +31,7 @@ Future<void> main() async {
   ));
 
   await SupabaseService.initialize();
+  await AudioService.init();
 
   runApp(
     MultiProvider(
@@ -181,15 +186,17 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppTheme.bg,
         extendBody: true,
-        body: PageView(
-          controller: _pageCtrl,
-          onPageChanged: (i) {
-            setState(() {
-              _idx = i;
-              _navPosition = i.toDouble();
-            });
-          },
-          children: _screens,
+        body: FloatingParticlesBackground(
+          child: PageView(
+            controller: _pageCtrl,
+            onPageChanged: (i) {
+              setState(() {
+                _idx = i;
+                _navPosition = i.toDouble();
+              });
+            },
+            children: _screens,
+          ),
         ),
         bottomNavigationBar: _ScrollXNav(
           current: _idx,
@@ -295,7 +302,7 @@ class _ScrollXNavState extends State<_ScrollXNav>
   void didUpdateWidget(covariant _ScrollXNav oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.current != widget.current) {
-      HapticFeedback.selectionClick();
+      HapticsService.light();
       _switchCtrl.forward(from: 0);
     }
   }
@@ -311,14 +318,15 @@ class _ScrollXNavState extends State<_ScrollXNav>
 
   void _handleTap(int index) {
     _hideTooltip();
-    HapticFeedback.lightImpact();
+    HapticsService.light();
+    AudioService.playSfx('click');
     _pressCtrl.forward(from: 0);
     _dockCtrl.forward(from: 0);
     widget.onTap(index);
   }
 
   void _showTooltip(int index) {
-    HapticFeedback.lightImpact();
+    HapticsService.light();
     setState(() => _tooltipIndex = index);
     _tooltipCtrl.forward(from: 0);
   }
@@ -342,135 +350,138 @@ class _ScrollXNavState extends State<_ScrollXNav>
         (_trackPadding + position * slotWidth + (slotWidth - _buttonWidth) / 2)
             .clamp(_trackPadding, width - _trackPadding - _buttonWidth);
 
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.only(bottom: 56),
-      child: SizedBox(
-        height: _dockHeight + 10,
-        child: AnimatedBuilder(
-          animation: Listenable.merge([
-            _pressCtrl,
-            _dockCtrl,
-            _switchCtrl,
-            _tooltipCtrl,
-          ]),
-          builder: (context, _) {
-            final dockLift = _dockLift(_dockCtrl.value);
-            final stretch = _switchStretch(_switchCtrl.value);
-            final activeIconScale = _activeIconScale(_switchCtrl.value);
-            final pressX = _pressScaleX(_pressCtrl.value);
-            final pressY = _pressScaleY(_pressCtrl.value);
-            final pressOffset = _pressOffset(_pressCtrl.value);
-            final shadow = _shadowStrength(_pressCtrl.value);
+    return AntiGravityWidget(
+      driftPixels: 1.5,
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 56),
+        child: SizedBox(
+          height: _dockHeight + 10,
+          child: AnimatedBuilder(
+            animation: Listenable.merge([
+              _pressCtrl,
+              _dockCtrl,
+              _switchCtrl,
+              _tooltipCtrl,
+            ]),
+            builder: (context, _) {
+              final dockLift = _dockLift(_dockCtrl.value);
+              final stretch = _switchStretch(_switchCtrl.value);
+              final activeIconScale = _activeIconScale(_switchCtrl.value);
+              final pressX = _pressScaleX(_pressCtrl.value);
+              final pressY = _pressScaleY(_pressCtrl.value);
+              final pressOffset = _pressOffset(_pressCtrl.value);
+              final shadow = _shadowStrength(_pressCtrl.value);
 
-            return Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: width,
-                height: _dockHeight + 10,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    _TooltipBubble(
-                      visible: _tooltipIndex != null,
-                      progress: _tooltipCtrl.value,
-                      label: _tooltipIndex == null
-                          ? ''
-                          : _items[_tooltipIndex!].tooltip,
-                      centerX: _tooltipCenter(width, slotWidth),
-                      dockWidth: width,
-                    ),
-                    Transform.translate(
-                      offset: Offset(0, dockLift + _ScrollXNavState._dockVerticalShift),
-                      child: SizedBox(
-                          width: width,
-                          height: _dockHeight,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Positioned.fill(
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius:
-                                        BorderRadius.circular(_dockHeight / 2),
-                                    boxShadow: const [
-                                      AppTheme.hardShadowStrong,
-                                    ],
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: width,
+                  height: _dockHeight + 10,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      _TooltipBubble(
+                        visible: _tooltipIndex != null,
+                        progress: _tooltipCtrl.value,
+                        label: _tooltipIndex == null
+                            ? ''
+                            : _items[_tooltipIndex!].tooltip,
+                        centerX: _tooltipCenter(width, slotWidth),
+                        dockWidth: width,
+                      ),
+                      Transform.translate(
+                        offset: Offset(0, dockLift + _ScrollXNavState._dockVerticalShift),
+                        child: SizedBox(
+                            width: width,
+                            height: _dockHeight,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned.fill(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius:
+                                          BorderRadius.circular(_dockHeight / 2),
+                                      boxShadow: const [
+                                        AppTheme.hardShadowStrong,
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: _trackPadding),
-                                child: Row(
-                                  children: List.generate(_items.length, (i) {
-                                    final selected = i == widget.current;
-                                    final item = _items[i];
-                                    return Expanded(
-                                      child: GestureDetector(
-                                        behavior: HitTestBehavior.opaque,
-                                        onTap: () => _handleTap(i),
-                                        onLongPressStart: (_) =>
-                                            _showTooltip(i),
-                                        onLongPressEnd: (_) => _hideTooltip(),
-                                        child: Center(
-                                          child: AnimatedOpacity(
-                                            opacity: selected ? 0 : 0.70,
-                                            duration: const Duration(
-                                                milliseconds: 120),
-                                            child: Transform.scale(
-                                              scale: 0.95,
-                                              child: _NavSvgIcon(
-                                                item: item,
-                                                color: _inactiveIcon,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: _trackPadding),
+                                  child: Row(
+                                    children: List.generate(_items.length, (i) {
+                                      final selected = i == widget.current;
+                                      final item = _items[i];
+                                      return Expanded(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () => _handleTap(i),
+                                          onLongPressStart: (_) =>
+                                              _showTooltip(i),
+                                          onLongPressEnd: (_) => _hideTooltip(),
+                                          child: Center(
+                                            child: AnimatedOpacity(
+                                              opacity: selected ? 0 : 0.70,
+                                              duration: const Duration(
+                                                  milliseconds: 120),
+                                              child: Transform.scale(
+                                                scale: 0.95,
+                                                child: _NavSvgIcon(
+                                                  item: item,
+                                                  color: _inactiveIcon,
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                      );
+                                    }),
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                left: indicatorLeft.toDouble(),
-                                // Centre the button vertically, then shift it up by
-                                // _dockVerticalShift so it stays visually centred
-                                // even though the white base moved down.
-                                top: (_dockHeight - _buttonHeight) / 2 -
-                                    _ScrollXNavState._dockVerticalShift,
-                                child: Transform.translate(
-                                  offset: Offset(0, pressOffset),
-                                  child: Transform(
-                                    alignment: Alignment.center,
-                                    transform: Matrix4.diagonal3Values(
-                                      stretch * pressX,
-                                      pressY,
-                                      1,
-                                    ),
-                                    child: _ActiveNavButton(
-                                      item: _items[widget.current],
-                                      iconScale: activeIconScale,
-                                      shadowStrength: shadow,
-                                      onTap: () => _handleTap(widget.current),
-                                      onLongPressStart: () =>
-                                          _showTooltip(widget.current),
-                                      onLongPressEnd: _hideTooltip,
+                                Positioned(
+                                  left: indicatorLeft.toDouble(),
+                                  // Centre the button vertically, then shift it up by
+                                  // _dockVerticalShift so it stays visually centred
+                                  // even though the white base moved down.
+                                  top: (_dockHeight - _buttonHeight) / 2 -
+                                      _ScrollXNavState._dockVerticalShift,
+                                  child: Transform.translate(
+                                    offset: Offset(0, pressOffset),
+                                    child: Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.diagonal3Values(
+                                        stretch * pressX,
+                                        pressY,
+                                        1,
+                                      ),
+                                      child: _ActiveNavButton(
+                                        item: _items[widget.current],
+                                        iconScale: activeIconScale,
+                                        shadowStrength: shadow,
+                                        onTap: () => _handleTap(widget.current),
+                                        onLongPressStart: () =>
+                                            _showTooltip(widget.current),
+                                        onLongPressEnd: _hideTooltip,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -578,6 +589,11 @@ class _ActiveNavButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           // No outer border ring — clean yellow pill
           boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.35),
+              blurRadius: 12,
+              spreadRadius: 2,
+            ),
             // Reduced Y offset (3px instead of 5px) for yellow button only
             BoxShadow(
               color: Color.lerp(

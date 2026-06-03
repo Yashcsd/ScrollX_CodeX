@@ -1,6 +1,8 @@
 // lib/screens/games_screen.dart
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
+import '../widgets/anti_gravity.dart';
+import '../widgets/bounce_press.dart';
 import 'feed_screen.dart'; // reuse allFeedGames + FeedGame
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -151,7 +153,7 @@ class _FilterRow extends StatelessWidget {
       child: Row(
         children: _allTags.map((tag) => Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: GestureDetector(
+          child: BouncePressWidget(
             onTap: () => onSelect(tag),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -292,103 +294,94 @@ class _GameCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => BouncePressWidget(
     onTap: () => onTap(game),
-    child: Container(
-      height: height,
-      decoration: BoxDecoration(
-        gradient: game.gradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [AppTheme.hardShadow],
-      ),
-      child: Stack(children: [
-        // ── Inner stroke frame — 6px inset, solid gray ────────────────
-        Positioned.fill(
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(19),
-                border: Border.all(
-                  color: const Color(0x40FFFFFF), // white tint — visible on all gradient colors
-                  width: 2,
-                ),
-                // Subtle inner shadow to create depth/frame feel
-              ),
-            ),
-          ),
+    child: AntiGravityWidget(
+      driftPixels: 1.5,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          gradient: game.gradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [AppTheme.hardShadow],
         ),
-        // Outer inset shadow line (darker bottom-right edge for 3D frame)
-        Positioned.fill(
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(19),
-                border: Border(
-                  bottom: const BorderSide(color: Color(0x30000000), width: 2),
-                  right:  const BorderSide(color: Color(0x30000000), width: 2),
-                  top:    BorderSide.none,
-                  left:   BorderSide.none,
+        child: Stack(children: [
+          // ── Inner stroke frame — 6px inset, solid gray ────────────────
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(19),
+                  border: Border.all(
+                    color: const Color(0x40FFFFFF), // white tint — visible on all gradient colors
+                    width: 2,
+                  ),
+                  // Subtle inner shadow to create depth/frame feel
                 ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          top: 10, left: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              game.tag,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
+          // Outer inset shadow line (darker bottom-right edge for 3D frame)
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(19),
+                  border: Border(
+                    bottom: const BorderSide(color: Color(0x30000000), width: 2),
+                    right:  const BorderSide(color: Color(0x30000000), width: 2),
+                    top:    BorderSide.none,
+                    left:   BorderSide.none,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-
-        // Emoji + name at bottom
-        Positioned(
-          bottom: 10, left: 10, right: 10,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(game.emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(height: 4),
-              Text(
-                game.name,
+          Positioned(
+            top: 10, left: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                game.tag,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 9,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-        ),
-
-        // Play overlay on tap
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(24),
-              onTap: () => onTap(game),
-              splashColor: Colors.transparent,
             ),
           ),
-        ),
-      ]),
+
+          // Emoji + name at bottom
+          Positioned(
+            bottom: 10, left: 10, right: 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(game.emoji, style: const TextStyle(fontSize: 28)),
+                const SizedBox(height: 4),
+                Text(
+                  game.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
     ),
   );
 }

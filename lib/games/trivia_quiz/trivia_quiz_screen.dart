@@ -5,7 +5,11 @@ import 'package:provider/provider.dart';
 import '../../core/game_theme.dart';
 import '../../services/trivia_api_service.dart';
 import '../../services/user_provider.dart';
+import '../../services/haptics_service.dart';
+import '../../services/audio_service.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/anti_gravity.dart';
+import '../../widgets/bounce_press.dart';
 
 class TriviaQuizScreen extends StatefulWidget {
   const TriviaQuizScreen({super.key});
@@ -31,10 +35,16 @@ class _TriviaQuizScreenState extends State<TriviaQuizScreen>
     _shakeAnim = Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(parent: _shakeCtrl, curve: Curves.elasticIn));
     _fetchQuestions();
+    AudioService.playMusic('quiz');
   }
 
   @override
-  void dispose() { _timer?.cancel(); _shakeCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _timer?.cancel();
+    _shakeCtrl.dispose();
+    AudioService.stopMusic();
+    super.dispose();
+  }
 
   Future<void> _fetchQuestions() async {
     setState(() { _loading = true; _errorMsg = null; });
@@ -50,11 +60,22 @@ class _TriviaQuizScreenState extends State<TriviaQuizScreen>
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_timeLeft <= 0) { t.cancel(); _timeUp(); return; }
       setState(() => _timeLeft--);
+      if (_timeLeft <= 5) {
+        HapticsService.timerTick(_timeLeft);
+        if (_timeLeft > 0) {
+          if (_timeLeft <= 3) {
+            AudioService.playSfx('tension_tick');
+          } else {
+            AudioService.playSfx('tick');
+          }
+        }
+      }
     });
   }
 
   void _timeUp() {
     if (_answered) return;
+    HapticsService.failureSequence();
     setState(() { _answered = true; _lives--; });
     _shakeCtrl.forward(from: 0);
     if (_lives == 0) { _endGame(false); return; }
@@ -65,9 +86,17 @@ class _TriviaQuizScreenState extends State<TriviaQuizScreen>
     if (_answered) return;
     _timer?.cancel();
     final correct = _questions[_idx].correctAnswer;
+    final isCorrect = ans == correct;
+    if (isCorrect) {
+      HapticsService.medium();
+      AudioService.playSfx('coin');
+    } else {
+      HapticsService.failureSequence();
+      AudioService.playSfx('fail');
+    }
     setState(() {
       _selected = ans; _answered = true;
-      if (ans == correct) _score += _timeLeft * 10 + 50;
+      if (isCorrect) _score += _timeLeft * 10 + 50;
       else { _lives--; _shakeCtrl.forward(from: 0); }
     });
     if (_lives <= 0) Future.delayed(const Duration(milliseconds: 1200), () => _endGame(false));
@@ -170,22 +199,24 @@ class _TriviaQuizScreenState extends State<TriviaQuizScreen>
       // Question card
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: GameCard(child: Column(children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(color: kYellow.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-            child: Text(q.category, style: const TextStyle(color: kDark, fontSize: 11, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(height: 12),
-          AnimatedBuilder(
-            animation: _shakeAnim,
-            builder: (_, child) => Transform.translate(
-              offset: Offset(_shakeAnim.value * 10 * (_idx % 2 == 0 ? 1 : -1), 0),
-              child: child),
-            child: Text(q.question, textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: kDark, height: 1.4)),
-          ),
-        ])),
+        child: AntiGravityWidget(
+          child: GameCard(child: Column(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(color: kYellow.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+              child: Text(q.category, style: const TextStyle(color: kDark, fontSize: 11, fontWeight: FontWeight.w600)),
+            ),
+            const SizedBox(height: 12),
+            AnimatedBuilder(
+              animation: _shakeAnim,
+              builder: (_, child) => Transform.translate(
+                offset: Offset(_shakeAnim.value * 10 * (_idx % 2 == 0 ? 1 : -1), 0),
+                child: child),
+              child: Text(q.question, textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: kDark, height: 1.4)),
+            ),
+          ])),
+        ),
       ),
       const Spacer(),
       // Answers
@@ -197,8 +228,9 @@ class _TriviaQuizScreenState extends State<TriviaQuizScreen>
             if (a == q.correctAnswer) { bg = kTeal.withOpacity(0.12); border = kTeal; text = kTeal; }
             else if (a == _selected) { bg = kCoral.withOpacity(0.1); border = kCoral; text = kCoral; }
           }
-          return GestureDetector(
+          return BouncePressWidget(
             onTap: () => _pick(a),
+            enableHaptics: false,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               margin: const EdgeInsets.only(bottom: 10),

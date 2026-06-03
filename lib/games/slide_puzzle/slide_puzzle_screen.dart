@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
+import '../../services/haptics_service.dart';
+import '../../services/audio_service.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/anti_gravity.dart';
+import '../../widgets/bounce_press.dart';
 
 class SlidePuzzleScreen extends StatefulWidget {
   const SlidePuzzleScreen({super.key});
@@ -28,9 +32,17 @@ class _SlidePuzzleScreenState extends State<SlidePuzzleScreen> {
   ];
 
   @override
-  void initState() { super.initState(); _startNew(); }
+  void initState() {
+    super.initState();
+    _startNew();
+    AudioService.playMusic('puzzle');
+  }
   @override
-  void dispose() { _timer?.cancel(); super.dispose(); }
+  void dispose() {
+    _timer?.cancel();
+    AudioService.stopMusic();
+    super.dispose();
+  }
 
   void _startNew() {
     _tiles = List.generate(9, (i) => i);
@@ -63,7 +75,20 @@ class _SlidePuzzleScreenState extends State<SlidePuzzleScreen> {
     if (_won) return;
     final empty = _tiles.indexOf(0);
     if (!_neighbors(empty).contains(i)) return;
+    
+    final v = _tiles[i];
+    final wasPlacedCorrectly = _goal[empty] == v; // Check if tile moves to its goal index
+    
     setState(() { _tiles[empty] = _tiles[i]; _tiles[i] = 0; _moves++; });
+    
+    if (wasPlacedCorrectly) {
+      HapticsService.medium(); // Match/solve index vibration
+      AudioService.playSfx('coin');
+    } else {
+      HapticsService.light(); // Regular slide movement vibration
+      AudioService.playSfx('tap');
+    }
+    
     bool solved = true;
     for (int j = 0; j < 9; j++) { if (_tiles[j] != _goal[j]) { solved = false; break; } }
     if (solved) _onWin();
@@ -102,25 +127,27 @@ class _SlidePuzzleScreenState extends State<SlidePuzzleScreen> {
             // Stats row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(children: [
-                Expanded(child: GameCard(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Column(children: [
-                    const Text('MOVES', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text('$_moves', style: const TextStyle(color: kDark, fontSize: 22, fontWeight: FontWeight.w900)),
-                  ]),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: GameCard(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Column(children: [
-                    const Text('TIME', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text(_timerStr, style: const TextStyle(color: kDark, fontSize: 22, fontWeight: FontWeight.w900)),
-                  ]),
-                )),
-              ]),
+              child: AntiGravityWidget(
+                child: Row(children: [
+                  Expanded(child: GameCard(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(children: [
+                      const Text('MOVES', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text('$_moves', style: const TextStyle(color: kDark, fontSize: 22, fontWeight: FontWeight.w900)),
+                    ]),
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(child: GameCard(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(children: [
+                      const Text('TIME', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(_timerStr, style: const TextStyle(color: kDark, fontSize: 22, fontWeight: FontWeight.w900)),
+                    ]),
+                  )),
+                ]),
+              ),
             ),
             const SizedBox(height: 24),
             // Grid
@@ -142,18 +169,27 @@ class _SlidePuzzleScreenState extends State<SlidePuzzleScreen> {
                     itemCount: 9,
                     itemBuilder: (_, i) {
                       final v = _tiles[i];
-                      return GestureDetector(
+                      if (v == 0) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: kGray,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        );
+                      }
+                      return BouncePressWidget(
                         onTap: () => _tap(i),
+                        enableHaptics: false,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 120),
                           decoration: BoxDecoration(
-                            color: v == 0 ? kGray : _tileColors[v],
+                            color: _tileColors[v],
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: v == 0 ? null : [
+                            boxShadow: [
                               BoxShadow(color: _tileColors[v].withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 3)),
                             ],
                           ),
-                          child: v == 0 ? null : Center(
+                          child: Center(
                             child: Text('$v', style: const TextStyle(
                                 fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white)),
                           ),

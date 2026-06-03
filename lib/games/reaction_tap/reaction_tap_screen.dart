@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
+import '../../services/haptics_service.dart';
+import '../../services/audio_service.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/anti_gravity.dart';
+import '../../widgets/bounce_press.dart';
 
 enum _Phase { waiting, ready, tooEarly, done }
 
@@ -26,15 +30,25 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
   bool _showResult = false;
 
   @override
-  void initState() { super.initState(); _startWait(); }
+  void initState() {
+    super.initState();
+    _startWait();
+    AudioService.playMusic('reaction');
+  }
   @override
-  void dispose() { _timer?.cancel(); super.dispose(); }
+  void dispose() {
+    _timer?.cancel();
+    AudioService.stopMusic();
+    super.dispose();
+  }
 
   void _startWait() {
     setState(() => _phase = _Phase.waiting);
     final delay = _rng.nextInt(3000) + 1500;
     _timer = Timer(Duration(milliseconds: delay), () {
       if (!mounted) return;
+      HapticsService.medium(); // Distinct alert haptic when target turns green
+      AudioService.playSfx('coin'); // Play clean chime when screen turns green
       setState(() { _phase = _Phase.ready; _greenAt = DateTime.now(); });
     });
   }
@@ -43,6 +57,8 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
     if (_phase == _Phase.done) return;
     _timer?.cancel();
     if (_phase == _Phase.waiting) {
+      HapticsService.failureSequence(); // Trigger double failure haptic for early taps
+      AudioService.playSfx('fail'); // Play fail tone for early tap
       setState(() => _phase = _Phase.tooEarly);
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) setState(() => _startWait());
@@ -50,6 +66,7 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
       return;
     }
     if (_phase == _Phase.ready) {
+      HapticsService.light(); // Confirm successful tap with light haptic
       final ms = DateTime.now().difference(_greenAt!).inMilliseconds;
       _times.add(ms);
       _round++;
@@ -123,29 +140,33 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(children: [
-                Expanded(child: GameCard(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(children: [
-                    const Text('ROUND', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
-                    Text('$_round / $_totalRounds', style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
-                  ]),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: GameCard(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Column(children: [
-                    const Text('LAST', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
-                    Text(_times.isEmpty ? '—' : '${_times.last} ms',
-                      style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
-                  ]),
-                )),
-              ]),
+              child: AntiGravityWidget(
+                child: Row(children: [
+                  Expanded(child: GameCard(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(children: [
+                      const Text('ROUND', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                      Text('$_round / $_totalRounds', style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
+                    ]),
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(child: GameCard(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(children: [
+                      const Text('LAST', style: TextStyle(color: kTextMuted, fontSize: 10, fontWeight: FontWeight.w700)),
+                      Text(_times.isEmpty ? '—' : '${_times.last} ms',
+                        style: const TextStyle(color: kDark, fontSize: 20, fontWeight: FontWeight.w900)),
+                    ]),
+                  )),
+                ]),
+              ),
             ),
             const Spacer(),
             // Big tap target
-            GestureDetector(
+            BouncePressWidget(
               onTap: _phase == _Phase.done ? null : _onTap,
+              enableHaptics: false,
+              scaleDownTo: 0.92,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
                 width: 200, height: 200,
@@ -179,9 +200,12 @@ class _ReactionTapScreenState extends State<ReactionTapScreen> {
             const Spacer(),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-              child: OutlineButton(label: 'Restart', icon: Icons.refresh_rounded, onTap: () => setState(() {
-                _times = []; _round = 0; _showResult = false; _phase = _Phase.waiting; _startWait();
-              })),
+              child: BouncePressWidget(
+                onTap: () => setState(() {
+                  _times = []; _round = 0; _showResult = false; _phase = _Phase.waiting; _startWait();
+                }),
+                child: OutlineButton(label: 'Restart', icon: Icons.refresh_rounded, onTap: () {}),
+              ),
             ),
           ]),
         ),
