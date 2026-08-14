@@ -46,6 +46,16 @@ class FeedGame {
   final double   rating;
   final Widget Function() buildScreen;
 
+  /// Path to the 3D-plastic PNG icon, e.g. 'assets/images/games_icon/slide_puzzle.png'
+  final String iconAsset;
+
+  /// Pastel card background tint (very light)
+  final Color tintBg;
+  /// Medium tint — used for tag pills / active states
+  final Color tintMid;
+  /// Solid darker shade for the hard card shadow
+  final Color tintShadow;
+
   const FeedGame({
     required this.id,
     required this.name,
@@ -59,6 +69,10 @@ class FeedGame {
     required this.shares,
     required this.rating,
     required this.buildScreen,
+    required this.iconAsset,
+    required this.tintBg,
+    required this.tintMid,
+    required this.tintShadow,
   });
 }
 
@@ -73,6 +87,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFFF5C800), Color(0xFFE6A800)],
     ),
+    iconAsset: 'assets/images/games_icon/slide_puzzle.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 12400, likes: 5200, comments: 6100, shares: 7300, rating: 4.5,
     buildScreen: () => const SlidePuzzleScreen(),
   ),
@@ -83,6 +99,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF9B59B6), Color(0xFF6C3483)],
     ),
+    iconAsset: 'assets/images/games_icon/trivia_quiz.png',
+    tintBg: const Color(0xFFEDECFA), tintMid: const Color(0xFFDBD9F5), tintShadow: const Color(0xFF5B569F),
     plays: 8900, likes: 4800, comments: 5500, shares: 6200, rating: 4.8,
     buildScreen: () => const TriviaQuizScreen(),
   ),
@@ -93,6 +111,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF1D9E75), Color(0xFF0F5E3A)],
     ),
+    iconAsset: 'assets/images/games_icon/memory_match.png',
+    tintBg: const Color(0xFFDFF1EC), tintMid: const Color(0xFFC0E4D8), tintShadow: const Color(0xFF157254),
     plays: 6200, likes: 3100, comments: 4200, shares: 5100, rating: 4.3,
     buildScreen: () => const MemoryMatchScreen(),
   ),
@@ -103,6 +123,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFFD85A30), Color(0xFF8B2500)],
     ),
+    iconAsset: 'assets/images/games_icon/color_match.png',
+    tintBg: const Color(0xFFE3EFFA), tintMid: const Color(0xFFC7DEF5), tintShadow: const Color(0xFF28639F),
     plays: 4100, likes: 2900, comments: 3800, shares: 4500, rating: 4.6,
     buildScreen: () => const ColorMatchScreen(),
   ),
@@ -113,6 +135,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF378ADD), Color(0xFF1A5FA8)],
     ),
+    iconAsset: 'assets/images/games_icon/math_blitz.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 5300, likes: 3400, comments: 4100, shares: 5000, rating: 4.4,
     buildScreen: () => const MathBlitzScreen(),
   ),
@@ -123,6 +147,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF7F77DD), Color(0xFF4A3FA8)],
     ),
+    iconAsset: 'assets/images/games_icon/word_scramble.png',
+    tintBg: const Color(0xFFFAE8E2), tintMid: const Color(0xFFF4D1C5), tintShadow: const Color(0xFF9C4123),
     plays: 3800, likes: 2200, comments: 3100, shares: 3900, rating: 4.2,
     buildScreen: () => const WordScrambleScreen(),
   ),
@@ -133,6 +159,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFF1D9E75), Color(0xFF0A3D1A)],
     ),
+    iconAsset: 'assets/images/games_icon/reaction_tap.png',
+    tintBg: const Color(0xFFE9F1E0), tintMid: const Color(0xFFD3E2C1), tintShadow: const Color(0xFF476E18),
     plays: 7100, likes: 4200, comments: 5300, shares: 6100, rating: 4.7,
     buildScreen: () => const ReactionTapScreen(),
   ),
@@ -143,6 +171,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF378ADD), Color(0xFF0A1628)],
     ),
+    iconAsset: 'assets/images/games_icon/number_sequence.png',
+    tintBg: const Color(0xFFFEF7DB), tintMid: const Color(0xFFFCF0B8), tintShadow: const Color(0xFFB09000),
     plays: 4500, likes: 2700, comments: 3600, shares: 4400, rating: 4.3,
     buildScreen: () => const NumberSequenceScreen(),
   ),
@@ -153,6 +183,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFFD4537E), Color(0xFF6B1A3A)],
     ),
+    iconAsset: 'assets/images/games_icon/simon_says.png',
+    tintBg: const Color(0xFFF9E7ED), tintMid: const Color(0xFFF3CFDB), tintShadow: const Color(0xFF993C5B),
     plays: 6800, likes: 3900, comments: 4800, shares: 5700, rating: 4.6,
     buildScreen: () => const SimonSaysScreen(),
   ),
@@ -163,6 +195,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFF1D9E75), Color(0xFF0A1A0A)],
     ),
+    iconAsset: 'assets/images/games_icon/snake_lite.png',
+    tintBg: const Color(0xFFE9F1E0), tintMid: const Color(0xFFD3E2C1), tintShadow: const Color(0xFF476E18),
     plays: 9200, likes: 5100, comments: 6200, shares: 7400, rating: 4.7,
     buildScreen: () => const SnakeLiteScreen(),
   ),
@@ -173,6 +207,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF7F77DD), Color(0xFF2D1B69)],
     ),
+    iconAsset: 'assets/images/games_icon/typing_speed.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 3200, likes: 1900, comments: 2800, shares: 3500, rating: 4.1,
     buildScreen: () => const TypingSpeedScreen(),
   ),
@@ -183,6 +219,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFFF5C800), Color(0xFF8B6000)],
     ),
+    iconAsset: 'assets/images/games_icon/odd_one_out.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 5600, likes: 3300, comments: 4200, shares: 5100, rating: 4.5,
     buildScreen: () => const OddOneOutScreen(),
   ),
@@ -193,6 +231,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFF378ADD), Color(0xFF0D1B33)],
     ),
+    iconAsset: 'assets/images/games_icon/pattern_memory.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 4000, likes: 2400, comments: 3300, shares: 4100, rating: 4.4,
     buildScreen: () => const PatternMemoryScreen(),
   ),
@@ -203,6 +243,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFFD4537E), Color(0xFF0A1628)],
     ),
+    iconAsset: 'assets/images/games_icon/balloon_pop.png',
+    tintBg: const Color(0xFFF9E7ED), tintMid: const Color(0xFFF3CFDB), tintShadow: const Color(0xFF993C5B),
     plays: 8400, likes: 4700, comments: 5800, shares: 6900, rating: 4.6,
     buildScreen: () => const BalloonPopScreen(),
   ),
@@ -213,6 +255,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF9B59B6), Color(0xFF1A0A2E)],
     ),
+    iconAsset: 'assets/images/games_icon/guess_the_flag.png',
+    tintBg: const Color(0xFFDFF1EC), tintMid: const Color(0xFFC0E4D8), tintShadow: const Color(0xFF157254),
     plays: 6000, likes: 3600, comments: 4500, shares: 5400, rating: 4.5,
     buildScreen: () => const GuessTheFlagScreen(),
   ),
@@ -223,6 +267,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFF7F77DD), Color(0xFF0A0A1E)],
     ),
+    iconAsset: 'assets/images/games_icon/falling_catch.png',
+    tintBg: const Color(0xFFFAE8E2), tintMid: const Color(0xFFF4D1C5), tintShadow: const Color(0xFF9C4123),
     plays: 5500, likes: 3200, comments: 4100, shares: 5000, rating: 4.3,
     buildScreen: () => const FallingCatchScreen(),
   ),
@@ -233,6 +279,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFFD85A30), Color(0xFF1A0A00)],
     ),
+    iconAsset: 'assets/images/games_icon/countdown_clicker.png',
+    tintBg: const Color(0xFFFBF9DB), tintMid: const Color(0xFFF7F3B8), tintShadow: const Color(0xFFA49900),
     plays: 11000, likes: 5800, comments: 6900, shares: 8100, rating: 4.8,
     buildScreen: () => const CountdownClickerScreen(),
   ),
@@ -243,6 +291,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF1D9E75), Color(0xFF0D1E35)],
     ),
+    iconAsset: 'assets/images/games_icon/anagram_rush.png',
+    tintBg: const Color(0xFFEDECFA), tintMid: const Color(0xFFDBD9F5), tintShadow: const Color(0xFF5B569F),
     plays: 3400, likes: 2000, comments: 2900, shares: 3700, rating: 4.2,
     buildScreen: () => const AnagramRushScreen(),
   ),
@@ -253,6 +303,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF7F77DD), Color(0xFF1A001A)],
     ),
+    iconAsset: 'assets/images/games_icon/shape_tap.png',
+    tintBg: const Color(0xFFFAE8E2), tintMid: const Color(0xFFF4D1C5), tintShadow: const Color(0xFF9C4123),
     plays: 4700, likes: 2800, comments: 3700, shares: 4600, rating: 4.4,
     buildScreen: () => const ShapeTapScreen(),
   ),
@@ -263,6 +315,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFFF5C800), Color(0xFF3D2200)],
     ),
+    iconAsset: 'assets/images/games_icon/whack_mole.png',
+    tintBg: const Color(0xFFE9F1E0), tintMid: const Color(0xFFD3E2C1), tintShadow: const Color(0xFF476E18),
     plays: 10200, likes: 5500, comments: 6600, shares: 7800, rating: 4.7,
     buildScreen: () => const WhackMoleScreen(),
   ),
@@ -273,6 +327,8 @@ final List<FeedGame> allFeedGames = [
       begin: Alignment.topLeft, end: Alignment.bottomRight,
       colors: [Color(0xFF378ADD), Color(0xFF0D1F3C)],
     ),
+    iconAsset: 'assets/images/games_icon/pairs_equation.png',
+    tintBg: const Color(0xFFE3EFFA), tintMid: const Color(0xFFC7DEF5), tintShadow: const Color(0xFF28639F),
     plays: 3600, likes: 2100, comments: 3000, shares: 3800, rating: 4.3,
     buildScreen: () => const PairsEquationScreen(),
   ),
@@ -511,26 +567,31 @@ class _FeedCardView extends StatelessWidget {
             width: posterSize,
             height: posterSize,
             decoration: BoxDecoration(
-              gradient: game.gradient,
+              color: game.tintBg,
               borderRadius: BorderRadius.circular(posterRadius),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.35),
+                color: Colors.white.withValues(alpha: 0.50),
                 width: 2,
               ),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0xFF1A1A1A), // solid dark — 3px hard shadow
+                  color: game.tintShadow,
                   blurRadius: 0,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Stack(children: [
-              // Large emoji centred
+              // Game icon — large, centered, no background shape
               Center(
-                child: Text(
-                  game.emoji,
-                  style: TextStyle(fontSize: posterSize * 0.30),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Image.asset(
+                    game.iconAsset,
+                    width: posterSize * 0.68,
+                    height: posterSize * 0.68,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               // Tag badge top-left
@@ -632,10 +693,13 @@ class _FeedCardView extends StatelessWidget {
                     color: Colors.white,
                     border: Border.all(color: Colors.white, width: 2),
                   ),
-                  child: Center(
-                    child: Text(
-                      game.emoji,
-                      style: const TextStyle(fontSize: 18),
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        game.iconAsset,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),
