@@ -48,6 +48,7 @@ flutter:
   # 📁 Assets
   assets:
     - assets/images/ScrollX_Logo.png
+    - assets/images/games_icon/
     - assets/icons/
     - assets/audio/
 

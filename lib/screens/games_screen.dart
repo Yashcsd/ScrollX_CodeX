@@ -223,7 +223,7 @@ class _GameGrid extends StatelessWidget {
           final g0 = base < games.length ? games[base] : null;
           final g1 = base + 1 < games.length ? games[base + 1] : null;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -231,7 +231,7 @@ class _GameGrid extends StatelessWidget {
                   Expanded(
                     flex: 3,
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 5),
+                      padding: const EdgeInsets.only(right: 10),
                       child: _GameCard(game: g0, height: 160, onTap: onTap),
                     ),
                   ),
@@ -244,25 +244,25 @@ class _GameGrid extends StatelessWidget {
             ),
           );
         } else {
-          // Row pattern: 2 equal cards
+          // Row pattern: 3 equal cards
           final g0 = base < games.length ? games[base] : null;
           final g1 = base + 1 < games.length ? games[base + 1] : null;
           final g2 = base + 2 < games.length ? games[base + 2] : null;
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
                 if (g0 != null)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 5),
+                      padding: const EdgeInsets.only(right: 10),
                       child: _GameCard(game: g0, height: 140, onTap: onTap),
                     ),
                   ),
                 if (g1 != null)
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: g2 != null ? 5.0 : 0.0),
+                      padding: EdgeInsets.only(right: g2 != null ? 10.0 : 0.0),
                       child: _GameCard(game: g1, height: 140, onTap: onTap),
                     ),
                   ),
@@ -280,7 +280,7 @@ class _GameGrid extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Individual game card
+// Individual game card — plastic icon on pastel tinted background
 // ─────────────────────────────────────────────────────────────────────────────
 class _GameCard extends StatelessWidget {
   final FeedGame game;
@@ -296,92 +296,82 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BouncePressWidget(
     onTap: () => onTap(game),
-    child: AntiGravityWidget(
-      driftPixels: 1.5,
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          gradient: game.gradient,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [AppTheme.hardShadow],
+    scaleDownTo: 0.94,
+    child: Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: game.tintBg,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: game.tintShadow,
+            blurRadius: 0,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(children: [
+        // ── Icon — floats inside the static card ──────────────────────────
+        Positioned(
+          top: 8,
+          left: 0,
+          right: 0,
+          // Icon occupies upper ~60% of the card
+          bottom: height * 0.35,
+          child: AntiGravityWidget(
+            driftPixels: 1.5,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Image.asset(
+                game.iconAsset,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ),
-        child: Stack(children: [
-          // ── Inner stroke frame — 6px inset, solid gray ────────────────
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(19),
-                  border: Border.all(
-                    color: const Color(0x40FFFFFF), // white tint — visible on all gradient colors
-                    width: 2,
-                  ),
-                  // Subtle inner shadow to create depth/frame feel
-                ),
-              ),
-            ),
-          ),
-          // Outer inset shadow line (darker bottom-right edge for 3D frame)
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(19),
-                  border: Border(
-                    bottom: const BorderSide(color: Color(0x30000000), width: 2),
-                    right:  const BorderSide(color: Color(0x30000000), width: 2),
-                    top:    BorderSide.none,
-                    left:   BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 10, left: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                game.tag,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ),
 
-          // Emoji + name at bottom
-          Positioned(
-            bottom: 10, left: 10, right: 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(game.emoji, style: const TextStyle(fontSize: 28)),
+        // ── Game name + tag pill at the bottom ────────────────────────────
+        Positioned(
+          bottom: 16, left: 16, right: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                game.name,
+                style: TextStyle(
+                  color: AppTheme.dark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              // Show tag pill only on taller cards (wide variant, h=160)
+              if (height >= 155) ...[
                 const SizedBox(height: 4),
-                Text(
-                  game.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: game.tintMid,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    game.tag,
+                    style: TextStyle(
+                      color: game.tintShadow,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
                 ),
               ],
-            ),
+            ],
           ),
-        ]),
-      ),
+        ),
+      ]),
     ),
   );
 }
@@ -397,8 +387,20 @@ class _EmptyState extends StatelessWidget {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('🎮', style: TextStyle(fontSize: 56)),
-        const SizedBox(height: 16),
+        Container(
+          width: 80, height: 80,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F0),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [AppTheme.hardShadow],
+          ),
+          child: const Icon(
+            Icons.sports_esports_rounded,
+            size: 40,
+            color: AppTheme.textMuted,
+          ),
+        ),
+        const SizedBox(height: 20),
         const Text(
           'No games found',
           style: TextStyle(
