@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../widgets/anti_gravity.dart';
 import '../widgets/bounce_press.dart';
+import '../widgets/pill_chip.dart';
 import 'feed_screen.dart'; // reuse allFeedGames + FeedGame
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ class _GamesHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Filter row
+// Filter row — uses shared PillChip (no borders, no bold shadows)
 // ─────────────────────────────────────────────────────────────────────────────
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -147,52 +148,16 @@ class _FilterRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     color: Colors.white,
-    padding: const EdgeInsets.fromLTRB(12, 20, 12,20),
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
     child: SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: _allTags.map((tag) => Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: BouncePressWidget(
+          child: PillChip(
+            label: tag,
+            active: selected == tag,
             onTap: () => onSelect(tag),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected == tag
-                    ? AppTheme.consoleYellow
-                    : const Color(0xFFF5F5F0),
-                borderRadius: BorderRadius.circular(16),
-                // Active: dark border. Inactive: NO border — remove the stroke.
-                border: selected == tag
-                    ? Border.all(color: AppTheme.dark, width: 1.5)
-                    : null,
-                boxShadow: selected == tag
-                    ? const [
-                        BoxShadow(
-                          color: Color(0xFFB89800), // solid mustard
-                          blurRadius: 0,
-                          offset: Offset(0, 4),
-                        ),
-                      ]
-                    : const [
-                        BoxShadow(
-                          color: Color(0xFFAAAAAA), // visible warm grey
-                          blurRadius: 0,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-              ),
-              child: Text(
-                tag,
-                style: TextStyle(
-                  color: selected == tag ? AppTheme.dark : AppTheme.textSec,
-                  fontSize: 12,
-                  fontWeight: selected == tag ? FontWeight.w700 : FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
           ),
         )).toList(),
       ),
@@ -201,7 +166,7 @@ class _FilterRow extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Game grid — masonry-style with alternating sizes
+// Game grid — uniform 2-column, every card identical shape
 // ─────────────────────────────────────────────────────────────────────────────
 class _GameGrid extends StatelessWidget {
   final List<FeedGame> games;
@@ -211,85 +176,30 @@ class _GameGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
-      itemCount: (games.length / 3).ceil(),
-      itemBuilder: (_, rowIdx) {
-        final base = rowIdx * 3;
-        final isEvenRow = rowIdx % 2 == 0;
-
-        if (isEvenRow) {
-          // Row pattern: 1 wide + 1 narrow
-          final g0 = base < games.length ? games[base] : null;
-          final g1 = base + 1 < games.length ? games[base + 1] : null;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (g0 != null)
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: _GameCard(game: g0, height: 160, onTap: onTap),
-                    ),
-                  ),
-                if (g1 != null)
-                  Expanded(
-                    flex: 2,
-                    child: _GameCard(game: g1, height: 160, onTap: onTap),
-                  ),
-              ],
-            ),
-          );
-        } else {
-          // Row pattern: 3 equal cards
-          final g0 = base < games.length ? games[base] : null;
-          final g1 = base + 1 < games.length ? games[base + 1] : null;
-          final g2 = base + 2 < games.length ? games[base + 2] : null;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                if (g0 != null)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: _GameCard(game: g0, height: 140, onTap: onTap),
-                    ),
-                  ),
-                if (g1 != null)
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(right: g2 != null ? 10.0 : 0.0),
-                      child: _GameCard(game: g1, height: 140, onTap: onTap),
-                    ),
-                  ),
-                if (g2 != null)
-                  Expanded(
-                    child: _GameCard(game: g2, height: 140, onTap: onTap),
-                  ),
-              ],
-            ),
-          );
-        }
-      },
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.82,
+      ),
+      itemCount: games.length,
+      itemBuilder: (_, i) => _GameCard(game: games[i], onTap: onTap),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Individual game card — plastic icon on pastel tinted background
+// Icon floats (AntiGravityWidget) inside a static card surface
 // ─────────────────────────────────────────────────────────────────────────────
 class _GameCard extends StatelessWidget {
   final FeedGame game;
-  final double height;
   final ValueChanged<FeedGame> onTap;
 
   const _GameCard({
     required this.game,
-    required this.height,
     required this.onTap,
   });
 
@@ -298,7 +208,6 @@ class _GameCard extends StatelessWidget {
     onTap: () => onTap(game),
     scaleDownTo: 0.94,
     child: Container(
-      height: height,
       decoration: BoxDecoration(
         color: game.tintBg,
         borderRadius: BorderRadius.circular(24),
@@ -311,67 +220,68 @@ class _GameCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(children: [
-        // ── Icon — floats inside the static card ──────────────────────────
-        Positioned(
-          top: 8,
-          left: 0,
-          right: 0,
-          // Icon occupies upper ~60% of the card
-          bottom: height * 0.35,
-          child: AntiGravityWidget(
-            driftPixels: 1.5,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Image.asset(
-                game.iconAsset,
-                fit: BoxFit.contain,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Icon — floats in upper ~62% ───────────────────────────────
+          Expanded(
+            flex: 62,
+            child: AntiGravityWidget(
+              driftPixels: 1.5,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Image.asset(
+                  game.iconAsset,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
-        ),
 
-        // ── Game name + tag pill at the bottom ────────────────────────────
-        Positioned(
-          bottom: 16, left: 16, right: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                game.name,
-                style: TextStyle(
-                  color: AppTheme.dark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              // Show tag pill only on taller cards (wide variant, h=160)
-              if (height >= 155) ...[
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: game.tintMid,
-                    borderRadius: BorderRadius.circular(16),
+          // ── Name + tag pill in lower ~38% ─────────────────────────────
+          Expanded(
+            flex: 38,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    game.name,
+                    style: const TextStyle(
+                      color: AppTheme.dark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Text(
-                    game.tag,
-                    style: TextStyle(
-                      color: game.tintShadow,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.6,
+                  const SizedBox(height: 4),
+                  // Tag pill — always shown on every card
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: game.tintMid,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      game.tag,
+                      style: TextStyle(
+                        color: game.tintShadow,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     ),
   );
 }
