@@ -2,9 +2,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/bounce_press.dart';
 
 class OddOneOutScreen extends StatefulWidget {
   const OddOneOutScreen({super.key});
@@ -32,6 +33,8 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
     ['🌊', '🏔️', '🌋', '💡'],
   ];
 
+  static final _tint = kGameTints['odd_one_out']!;
+
   late List<String> _items;
   late int _oddIdx;
   int _score = 0;
@@ -54,7 +57,7 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
   }
 
   void _pick(int idx) {
-    if (_flash != null) return; // prevent double tap
+    if (_flash != null) return;
     final ok = idx == _oddIdx;
     setState(() {
       _flash = ok ? '✓ Correct!' : '✗ Wrong!';
@@ -84,133 +87,130 @@ class _OddOneOutScreenState extends State<OddOneOutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF2D1B00), Color(0xFF6B3A00)],
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.close,
-                                color: Colors.white, size: 18),
-                          ),
+      backgroundColor: _tint.bg,
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // ── Header ──────────────────────────────────────────────
+                GameHeader(
+                  title: '🔍 Odd One Out',
+                  actions: [
+                    ScoreBadge(score: _score),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: _tint.mid,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [kHardShadow],
+                      ),
+                      child: Text(
+                        '${_round + 1}/8',
+                        style: TextStyle(
+                          color: _tint.shadow,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
                         ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Odd One Out',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${_round + 1}/8  $_score pts',
-                          style: const TextStyle(
-                            color: AppTheme.gold,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
+                ),
 
-                  const Spacer(),
+                const SizedBox(height: 16),
 
-                  const Text(
+                // ── Instruction ─────────────────────────────────────────
+                GameCard(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 20),
+                  child: const Text(
                     'Tap the one that DOESN\'T belong!',
-                    style: TextStyle(color: AppTheme.textSec, fontSize: 15),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: kDark,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                ),
 
-                  // 2x2 emoji grid — fixed bracket structure
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      children: List.generate(
-                        4,
-                            (i) => GestureDetector(
-                          onTap: () => _pick(i),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: Colors.white12, width: 1.5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _items[i],
-                                style:
-                                const TextStyle(fontSize: 52),
-                              ),
+                const Spacer(),
+
+                // ── 2×2 emoji grid ──────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    children: List.generate(
+                      4,
+                      (i) => BouncePressWidget(
+                        onTap: () => _pick(i),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [kHardShadow],
+                          ),
+                          child: Center(
+                            child: Text(
+                              _items[i],
+                              style: const TextStyle(fontSize: 52),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
+                ),
 
-                  // Flash message — now OUTSIDE GridView, correct position
-                  const SizedBox(height: 24),
-                  if (_flash != null)
-                    Text(
+                // ── Flash feedback ──────────────────────────────────────
+                const SizedBox(height: 24),
+                if (_flash != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: const [kHardShadow],
+                    ),
+                    child: Text(
                       _flash!,
                       style: TextStyle(
-                        color: _flash!.contains('✓')
-                            ? AppTheme.teal
-                            : AppTheme.coral,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        color: _flash!.contains('✓') ? kTeal : kCoral,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
                       ),
-                    )
-                  else
-                    const SizedBox(height: 28),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 44),
 
-                  const Spacer(),
-                ],
-              ),
-
-              if (_showResult)
-                GameResultOverlay(
-                  score: _score,
-                  xpEarned: _score >= 250 ? 120 : 20,
-                  won: _score >= 250,
-                  onContinue: () => Navigator.pop(context),
-                  onRetry: () => setState(() {
-                    _score = 0;
-                    _round = 0;
-                    _showResult = false;
-                    _load();
-                  }),
-                ),
-            ],
+                const Spacer(),
+              ],
+            ),
           ),
-        ),
+
+          if (_showResult)
+            GameResultOverlay(
+              score: _score,
+              xpEarned: _score >= 250 ? 120 : 20,
+              won: _score >= 250,
+              onContinue: () => Navigator.pop(context),
+              onRetry: () => setState(() {
+                _score = 0;
+                _round = 0;
+                _showResult = false;
+                _load();
+              }),
+            ),
+        ],
       ),
     );
   }

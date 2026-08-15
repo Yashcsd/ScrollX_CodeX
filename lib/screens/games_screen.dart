@@ -222,14 +222,6 @@ class _GameCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: game.tintBg,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: game.tintShadow,
-            blurRadius: 0,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
