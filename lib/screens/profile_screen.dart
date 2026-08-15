@@ -608,10 +608,17 @@ class _ProfileHeaderCard extends StatelessWidget {
       color: AppTheme.primary,
       padding: EdgeInsets.fromLTRB(16, top + 12, 16, 20),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [AppTheme.hardShadow],
+          // #8/#9 — top radius 50 so yellow bleeds through at the header edge;
+          // bottom corners slightly rounded for a clean card feel
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(50),
+            topRight: Radius.circular(50),
+            bottomLeft: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+          ),
+          boxShadow: [AppTheme.hardShadow],
         ),
         child: Column(children: [
           // Top row: avatar + info + edit + QR
@@ -620,13 +627,13 @@ class _ProfileHeaderCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Avatar
+                // Avatar — flat square, no shadow or border (#12)
                 Container(
                   width: 64, height: 64,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppTheme.primary,
-                    border: Border.all(color: AppTheme.primary, width: 2),
+                    // No border, no boxShadow — sits clean and flat on the white card
                   ),
                   child: Center(
                     child: Text(
@@ -1191,11 +1198,12 @@ class _EmptySection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         children: [
+          // #7 — trophy/badge circle: pure black bg, yellow icon
           Container(
             width: 56,
             height: 56,
             decoration: const BoxDecoration(
-              color: AppTheme.bgSurface,
+              color: Color(0xFF1A1A1A), // black bg — icon stays yellow
               shape: BoxShape.circle,
               boxShadow: [AppTheme.hardShadowSmall],
             ),

@@ -653,16 +653,16 @@ class _FeedCardView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // 2 — Simple play button: yellow circle + "Play" label
+              // 2 — Simple play button: white bg + dark label + mustard hard shadow (#1)
               BouncePressWidget(
                 onTap: onPlay,
                 child: Container(
                   height: 52,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    color: AppTheme.primary,
+                    color: Colors.white,               // #1 — white CTA
                     borderRadius: BorderRadius.circular(32),
-                    boxShadow: const [AppTheme.yellowButtonShadow],
+                    boxShadow: const [AppTheme.yellowButtonShadow], // mustard shadow kept
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
