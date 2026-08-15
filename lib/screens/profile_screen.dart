@@ -507,11 +507,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             .where((g) => g.id == e.key)
                             .firstOrNull;
                         return _GameTile(
-                          gradient: game?.gradient ??
-                              const LinearGradient(colors: [
-                                Color(0xFF4A4A6A),
-                                Color(0xFF2A2A4A)
-                              ]),
+                          tintBg: game?.tintBg ?? const Color(0xFFEEEEE8),
+                          tintShadow: game?.tintShadow ?? const Color(0xFF999990),
+                          iconAsset: game?.iconAsset,
                           emoji: game?.emoji ?? '🎮',
                           name: _gameNames[e.key] ?? e.key,
                         );
@@ -1042,11 +1040,15 @@ class _BadgeStyle {
 // Game tile (for Top Games section)
 // ─────────────────────────────────────────────────────────────────────────────
 class _GameTile extends StatelessWidget {
-  final Gradient gradient;
+  final Color tintBg;
+  final Color tintShadow;
+  final String? iconAsset;
   final String emoji, name;
 
   const _GameTile({
-    required this.gradient,
+    required this.tintBg,
+    required this.tintShadow,
+    required this.iconAsset,
     required this.emoji,
     required this.name,
   });
@@ -1054,13 +1056,30 @@ class _GameTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      gradient: gradient,
-      borderRadius: BorderRadius.circular(14),
+      color: tintBg,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: tintShadow,
+          blurRadius: 0,
+          offset: const Offset(0, 3),
+        ),
+      ],
     ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 26)),
+        if (iconAsset != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Image.asset(
+              iconAsset!,
+              height: 40,
+              fit: BoxFit.contain,
+            ),
+          )
+        else
+          Text(emoji, style: const TextStyle(fontSize: 26)),
         const SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1068,9 +1087,9 @@ class _GameTile extends StatelessWidget {
             name,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppTheme.dark,
               fontSize: 9,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

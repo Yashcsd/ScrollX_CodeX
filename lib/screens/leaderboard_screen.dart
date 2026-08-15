@@ -8,6 +8,7 @@ import '../models/user_model.dart';
 import '../services/user_provider.dart';
 import '../widgets/anti_gravity.dart';
 import '../widgets/bounce_press.dart';
+import '../widgets/pill_chip.dart';
 
 const _kYellow     = Color(0xFFE4D400);
 const _kYellowDark = Color(0xFFB89800); // solid mustard — no opacity
@@ -113,22 +114,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                           padding: const EdgeInsets.fromLTRB(
                               16, 16, 16, 110),
                           children: [
-                            // Filter pills
+                            // Filter pills — Global / Nearby
                             Row(children: [
-                              _FilterPill(
+                              PillChip(
                                 icon: Icons.public_rounded,
-                                label: '#01',
+                                label: 'Global',
                                 active: _isGlobal,
-                                onTap: () =>
-                                    setState(() => _isGlobal = true),
+                                onTap: () => setState(() => _isGlobal = true),
                               ),
-                              const SizedBox(width: 10),
-                              _FilterPill(
+                              const SizedBox(width: 8),
+                              PillChip(
                                 icon: Icons.location_on_outlined,
-                                label: '#01',
+                                label: 'Nearby',
                                 active: !_isGlobal,
-                                onTap: () =>
-                                    setState(() => _isGlobal = false),
+                                onTap: () => setState(() => _isGlobal = false),
                               ),
                             ]),
 
@@ -342,72 +341,6 @@ class _StatItem extends StatelessWidget {
             fontWeight: FontWeight.w700,
           )),
     ],
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Filter pills
-// ─────────────────────────────────────────────────────────────────────────────
-class _FilterPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _FilterPill({
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => BouncePressWidget(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      decoration: BoxDecoration(
-        color: active ? _kYellow : Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: active
-              ? _kYellowDark
-              : const Color(0xFFCCBB00),
-          width: 1.5,
-        ),
-        boxShadow: active
-            ? [
-                const BoxShadow(
-                  color: _kYellowDark,
-                  blurRadius: 0,
-                  offset: Offset(0, 4),
-                ),
-              ]
-            : [
-                const BoxShadow(
-                  color: Color(0xFFCCCBC0), // solid warm grey
-                  blurRadius: 0,
-                  offset: Offset(0, 3),
-                ),
-              ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon,
-              size: 16,
-              color: active ? _kDark : const Color(0xFF888888)),
-          const SizedBox(width: 6),
-          Text(label,
-              style: TextStyle(
-                color: active ? _kDark : const Color(0xFF888888),
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-              )),
-        ],
-      ),
-    ),
   );
 }
 

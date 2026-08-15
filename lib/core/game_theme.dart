@@ -4,37 +4,52 @@ import 'package:flutter/material.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-game pastel tint tokens — derived from AppTheme base accents
-// tintBg: ~94% white mix (card background)
-// tintMid: ~85% white mix (pills / active states)
-// tintShadow: 28% black mix into base accent (hard shadow color)
+// bg:     ~94% white mix  — card background
+// mid:    ~85% white mix  — pills / active states
+// shadow: 28% black mix   — hard shadow color
+// deep:   15% black mix   — flat full-bleed feed background (dark enough for
+//                           white text, still reads as the same hue family)
+//         Exception: yellow + gold families use dark text (useDarkText = true)
 // ─────────────────────────────────────────────────────────────────────────────
 class GameTint {
-  final Color bg, mid, shadow;
-  const GameTint(this.bg, this.mid, this.shadow);
+  final Color bg, mid, shadow, deep;
+  /// True for yellow/gold families — deep is light enough that white text
+  /// loses contrast; overlay text should use AppTheme.dark instead.
+  final bool useDarkText;
+  const GameTint(this.bg, this.mid, this.shadow, this.deep,
+      {this.useDarkText = false});
 }
 
 const kGameTints = <String, GameTint>{
-  'slide_puzzle':       GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'trivia_quiz':        GameTint(Color(0xFFEDECFA), Color(0xFFDBD9F5), Color(0xFF5B569F)),
-  'memory_match':       GameTint(Color(0xFFDFF1EC), Color(0xFFC0E4D8), Color(0xFF157254)),
-  'color_match':        GameTint(Color(0xFFE3EFFA), Color(0xFFC7DEF5), Color(0xFF28639F)),
-  'math_blitz':         GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'word_scramble':      GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123)),
-  'reaction_tap':       GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18)),
-  'number_sequence':    GameTint(Color(0xFFFEF7DB), Color(0xFFFCF0B8), Color(0xFFB09000)),
-  'simon_says':         GameTint(Color(0xFFF9E7ED), Color(0xFFF3CFDB), Color(0xFF993C5B)),
-  'snake_lite':         GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18)),
-  'typing_speed':       GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'odd_one_out':        GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'pattern_memory':     GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'balloon_pop':        GameTint(Color(0xFFF9E7ED), Color(0xFFF3CFDB), Color(0xFF993C5B)),
-  'guess_the_flag':     GameTint(Color(0xFFDFF1EC), Color(0xFFC0E4D8), Color(0xFF157254)),
-  'falling_catch':      GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123)),
-  'countdown_clicker':  GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900)),
-  'anagram_rush':       GameTint(Color(0xFFEDECFA), Color(0xFFDBD9F5), Color(0xFF5B569F)),
-  'shape_tap':          GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123)),
-  'whack_mole':         GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18)),
-  'pairs_equation':     GameTint(Color(0xFFE3EFFA), Color(0xFFC7DEF5), Color(0xFF28639F)),
+  // ── yellow family (base #E4D400) — deep = #C2B400 ─────────────────────
+  'slide_puzzle':      GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  'math_blitz':        GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  'typing_speed':      GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  'odd_one_out':       GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  'pattern_memory':    GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  'countdown_clicker': GameTint(Color(0xFFFBF9DB), Color(0xFFF7F3B8), Color(0xFFA49900), Color(0xFFC2B400), useDarkText: true),
+  // ── gold family (base #F5C800) — deep = #D0AA00 ───────────────────────
+  'number_sequence':   GameTint(Color(0xFFFEF7DB), Color(0xFFFCF0B8), Color(0xFFB09000), Color(0xFFD0AA00), useDarkText: true),
+  // ── purple family (base #7F77DD) — deep = #6C65BC ─────────────────────
+  'trivia_quiz':       GameTint(Color(0xFFEDECFA), Color(0xFFDBD9F5), Color(0xFF5B569F), Color(0xFF6C65BC)),
+  'anagram_rush':      GameTint(Color(0xFFEDECFA), Color(0xFFDBD9F5), Color(0xFF5B569F), Color(0xFF6C65BC)),
+  // ── teal family (base #1D9E75) — deep = #198663 ───────────────────────
+  'memory_match':      GameTint(Color(0xFFDFF1EC), Color(0xFFC0E4D8), Color(0xFF157254), Color(0xFF198663)),
+  'guess_the_flag':    GameTint(Color(0xFFDFF1EC), Color(0xFFC0E4D8), Color(0xFF157254), Color(0xFF198663)),
+  // ── blue family (base #378ADD) — deep = #2F75BC ───────────────────────
+  'color_match':       GameTint(Color(0xFFE3EFFA), Color(0xFFC7DEF5), Color(0xFF28639F), Color(0xFF2F75BC)),
+  'pairs_equation':    GameTint(Color(0xFFE3EFFA), Color(0xFFC7DEF5), Color(0xFF28639F), Color(0xFF2F75BC)),
+  // ── coral family (base #D85A30) — deep = #B84C29 ─────────────────────
+  'word_scramble':     GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123), Color(0xFFB84C29)),
+  'falling_catch':     GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123), Color(0xFFB84C29)),
+  'shape_tap':         GameTint(Color(0xFFFAE8E2), Color(0xFFF4D1C5), Color(0xFF9C4123), Color(0xFFB84C29)),
+  // ── pink family (base #D4537E) — deep = #B4476B ──────────────────────
+  'simon_says':        GameTint(Color(0xFFF9E7ED), Color(0xFFF3CFDB), Color(0xFF993C5B), Color(0xFFB4476B)),
+  'balloon_pop':       GameTint(Color(0xFFF9E7ED), Color(0xFFF3CFDB), Color(0xFF993C5B), Color(0xFFB4476B)),
+  // ── green family (base #639922) — deep = #54821D ──────────────────────
+  'reaction_tap':      GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18), Color(0xFF54821D)),
+  'snake_lite':        GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18), Color(0xFF54821D)),
+  'whack_mole':        GameTint(Color(0xFFE9F1E0), Color(0xFFD3E2C1), Color(0xFF476E18), Color(0xFF54821D)),
 };
 
 const kYellow     = Color(0xFFE4D400);
