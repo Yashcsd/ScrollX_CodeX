@@ -38,7 +38,8 @@ class PillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fill   = active ? (activeColor ?? AppTheme.consoleYellow) : const Color(0xFFF5F5F0);
-    final fg     = active ? (activeTextColor ?? AppTheme.dark)       : AppTheme.textSec;
+    // Selected: white text on yellow fill for strong contrast (#4 / #5)
+    final fg     = active ? (activeTextColor ?? Colors.white)        : AppTheme.textSec;
 
     return BouncePressWidget(
       onTap: onTap,

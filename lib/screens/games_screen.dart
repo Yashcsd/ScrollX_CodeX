@@ -91,17 +91,24 @@ class _GamesHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     return Container(
-      color: AppTheme.primary,
-      padding: EdgeInsets.fromLTRB(16, top + 55, 16, 20),
+      // Top radius 50 so yellow bleeds through cleanly at top edge (#8/#9)
+      decoration: const BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        ),
+      ),
+      padding: EdgeInsets.fromLTRB(20, top + 58, 20, 24), // wider side padding gives content breathing room (#3)
       child: Container(
-        height: 50,
+        height: 52,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(26),
           boxShadow: const [AppTheme.hardShadowSmall],
         ),
         child: Row(children: [
-          const SizedBox(width: 16),
+          const SizedBox(width: 18),
           const Icon(Icons.search_rounded, color: AppTheme.textMuted, size: 22),
           const SizedBox(width: 10),
           Expanded(
@@ -129,7 +136,7 @@ class _GamesHeader extends StatelessWidget {
           ),
           const Icon(Icons.grid_view_rounded,
               color: AppTheme.textMuted, size: 22),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
         ]),
       ),
     );
@@ -146,20 +153,24 @@ class _FilterRow extends StatelessWidget {
   const _FilterRow({required this.selected, required this.onSelect});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => ColoredBox(
+    // No decoration/border — the white background alone with no bottom
+    // decoration eliminates the unwanted underline under the chip row (#2)
     color: Colors.white,
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: _allTags.map((tag) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: PillChip(
-            label: tag,
-            active: selected == tag,
-            onTap: () => onSelect(tag),
-          ),
-        )).toList(),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _allTags.map((tag) => Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: PillChip(
+              label: tag,
+              active: selected == tag,
+              onTap: () => onSelect(tag),
+            ),
+          )).toList(),
+        ),
       ),
     ),
   );

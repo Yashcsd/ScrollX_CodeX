@@ -172,10 +172,17 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
+        // #8/#9 — top corners radius 50 so yellow header bleeds through cleanly
+        // at the top edge; bottom corners square so content sits flush
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(50),
+          topRight: Radius.circular(50),
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+        boxShadow: [
           // Hard 3-D depth — solid mustard, no opacity
           BoxShadow(
             color: _kYellowDark,
@@ -375,20 +382,25 @@ class _RankTileState extends State<_RankTile> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
-          color: widget.isMe
-              ? const Color(0xFFFFFBCC)
-              : const Color(0xFFF8F8F4), // lighter warm surface
+          // #10 — all rows: pure white background, thin black border (1px)
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: widget.isMe
-              ? Border.all(color: _kYellow, width: 1.5)
+          border: Border.all(
+            color: widget.isMe ? _kYellow : const Color(0xFF1A1A1A),
+            width: 1, // reduced by 1 px from the previous implicit default
+          ),
+          // #11 — rank #1 only: bottom-only hard shadow for 3D plastic feel
+          // Lower ranks get no shadow so the hierarchy reads clearly
+          boxShadow: widget.rank == 1
+              ? const [
+                  BoxShadow(
+                    color: Color(0xFF1A1A1A), // solid near-black bottom line
+                    blurRadius: 0,
+                    spreadRadius: 0,
+                    offset: Offset(0, 4),
+                  ),
+                ]
               : null,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0xFFDDDCCC), // very subtle warm grey — barely visible
-              blurRadius: 0,
-              offset: Offset(0, 1), // reduced from 3 to 1
-            ),
-          ],
         ),
         child: Row(children: [
           // Glow ring avatar — stronger border
@@ -511,15 +523,16 @@ class _EmptyState extends StatelessWidget {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // #6 — trophy circle: pure black bg, yellow trophy icon
         Container(
           width: 80,
           height: 80,
           decoration: const BoxDecoration(
-            color: _kYellow,
+            color: Color(0xFF1A1A1A), // black bg — trophy icon stays yellow
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: _kYellowDark, // solid mustard — no opacity
+                color: Color(0xFF000000), // solid black shadow — no opacity
                 blurRadius: 0,
                 offset: Offset(0, 5),
               ),

@@ -55,6 +55,7 @@ const kGameTints = <String, GameTint>{
 const kYellow     = Color(0xFFE4D400);
 const kYellowDark = Color(0xFF9A8A00);
 const kDark       = Color(0xFF1A1A1A);
+const kBlack      = Color(0xFF000000); // pure black for trophy/badge circles
 const kGray       = Color(0xFFF5F5F5);
 const kBorder     = Color(0xFFE8E8E8);
 const kTextSec    = Color(0xFF666666);
@@ -70,12 +71,40 @@ const kHardShadow = BoxShadow(
   offset: Offset(0, 4),
 );
 
-// ── Game screen gradient (yellow top → white bottom) ─────────────────────────
+// ── Game screen background — solid black replaces full-screen yellow fill ───
+// Use this for Typing Speed, Number Sequence, and any game that previously
+// used a solid yellow/gold fill as its full-screen scaffold background.
+const kGameScaffoldBg = Color(0xFF1A1A1A);
+
+// ── Selected chip text — white on yellow fill ─────────────────────────────
+const kSelectedChipText = Colors.white;
+
+// ── Top-player #1 rank tile — bottom-only hard shadow for 3D plastic feel ──
+const kRankOneShadow = BoxShadow(
+  color: Color(0xFF1A1A1A), // solid near-black bottom line
+  blurRadius: 0,
+  spreadRadius: 0,
+  offset: Offset(0, 4),
+);
+
+// ── Game screen gradient (yellow top → rich mid → white bottom) ──────────────
+// More atmospheric than a flat solid — yellow family reads as same ScrollX
+// brand while adding depth. Not used on buttons/chips, only full-screen bg.
 const kGameGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
-  colors: [kYellow, Color(0xFFF5F0C0), Colors.white],
-  stops: [0.0, 0.35, 0.65],
+  colors: [kYellow, Color(0xFFD8CC00), Color(0xFFF5F0C0), Colors.white],
+  stops: [0.0, 0.20, 0.50, 0.80],
+);
+
+// ── Dark game gradient — for game screens that used solid yellow bg (#13/14) ─
+// Black scaffold with a subtle yellow atmospheric glow at the top.
+// Keeps the yellow family feel while giving high contrast for UI chrome.
+const kDarkGameGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFF2A2600), Color(0xFF1A1A1A), Color(0xFF0D0D0D)],
+  stops: [0.0, 0.35, 1.0],
 );
 
 // ── Back button ───────────────────────────────────────────────────────────────
@@ -184,6 +213,8 @@ class GameProgressBar extends StatelessWidget {
 }
 
 // ── Yellow 3D button ──────────────────────────────────────────────────────────
+// Background is pure white; text + icon stay dark (#1A1A1A).
+// The mustard hard shadow underneath preserves the plastic 3D / console feel.
 class YellowButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -198,10 +229,10 @@ class YellowButton extends StatelessWidget {
       width: double.infinity,
       height: 54,
       decoration: const BoxDecoration(
-        color: kYellow,
+        color: Colors.white,                           // #1 — white CTA bg
         borderRadius: BorderRadius.all(Radius.circular(28)),
         boxShadow: [
-          BoxShadow(color: kYellowDark, blurRadius: 0, offset: Offset(0, 5)),
+          BoxShadow(color: kYellowDark, blurRadius: 0, offset: Offset(0, 5)), // mustard hard shadow kept
         ],
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
