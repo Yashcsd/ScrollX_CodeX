@@ -431,148 +431,166 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // ── Profile exists ────────────────────────────────────────────────────────
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5E8), // warm off-white
-      body: CustomScrollView(slivers: [
-        // ── Yellow profile header card ──────────────────────────────────────
-        SliverToBoxAdapter(
-          child: _ProfileHeaderCard(
-            user: user,
-            editing: _editing,
-            nameController: _nameCtrl,
-            onEditToggle: () async {
-              if (_editing) {
-                final n = _nameCtrl.text.trim();
-                if (n.isNotEmpty && n != user.username) {
-                  await prov.updateProfile(n);
-                }
-              } else {
-                _nameCtrl.text = user.username;
-              }
-              setState(() => _editing = !_editing);
-            },
-            onDeleteTap: () => _openSettingsSheet(context),
+      backgroundColor: Colors.white, // Bottom is white
+      body: Stack(
+        children: [
+          // Yellow top background
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.4, // Extends down enough
+            child: Container(color: AppTheme.primary),
           ),
-        ),
-
-        // ── XP progress bar ─────────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: _XpProgressBar(xp: user.totalXp),
-          ),
-        ),
-
-        // ── Top Badges ──────────────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-            child: _SectionCard(
-              title: 'Top Badges',
-              child: user.badges.isEmpty
-                  ? const _EmptySection(
-                      text: 'Play games to earn badges!')
-                  : GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      children: user.badges
-                          .take(6)
-                          .map((b) => _BadgeTile(label: b))
-                          .toList(),
-                    ),
+          CustomScrollView(slivers: [
+            // ── Profile header card (transparent container) ─────────────────────
+            SliverToBoxAdapter(
+              child: _ProfileHeaderCard(
+                user: user,
+                editing: _editing,
+                nameController: _nameCtrl,
+                onEditToggle: () async {
+                  if (_editing) {
+                    final n = _nameCtrl.text.trim();
+                    if (n.isNotEmpty && n != user.username) {
+                      await prov.updateProfile(n);
+                    }
+                  } else {
+                    _nameCtrl.text = user.username;
+                  }
+                  setState(() => _editing = !_editing);
+                },
+                onDeleteTap: () => _openSettingsSheet(context),
+              ),
             ),
-          ),
-        ),
 
-        // ── Top Games ───────────────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: _SectionCard(
-              title: 'Top Games',
-              child: user.bestScores.isEmpty
-                  ? const _EmptySection(text: 'No games played yet!')
-                  : GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      children: user.bestScores.entries
-                          .take(6)
-                          .map((e) {
-                        final game = allFeedGames
-                            .where((g) => g.id == e.key)
-                            .firstOrNull;
-                        return _GameTile(
-                          tintBg: game?.tintBg ?? const Color(0xFFEEEEE8),
-                          tintShadow: game?.tintShadow ?? const Color(0xFF999990),
-                          iconAsset: game?.iconAsset,
-                          emoji: game?.emoji ?? '🎮',
-                          name: _gameNames[e.key] ?? e.key,
-                        );
-                      }).toList(),
-                    ),
-            ),
-          ),
-        ),
-
-        // ── Top Scores ──────────────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: _SectionCard(
-              title: 'Top Scores',
-              child: user.bestScores.isEmpty
-                  ? const _EmptySection(text: 'No scores yet. Start playing!')
-                  : Column(
-                      children: user.bestScores.entries
-                          .take(5)
-                          .map((e) => _ScoreRow(
-                                game: _gameNames[e.key] ?? e.key,
-                                score: e.value,
-                              ))
-                          .toList(),
-                    ),
-            ),
-          ),
-        ),
-
-        // ── Delete button ───────────────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
-            child: GestureDetector(
-              onTap: () => _confirmDelete(context),
+            // ── Main White Content Frame ────────────────────────────────────────
+            SliverToBoxAdapter(
               child: Container(
-                height: 50,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: AppTheme.coral, width: 1.5),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(25),
+                    topRight: Radius.circular(25),
+                  ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
                   children: [
-                    Icon(Icons.delete_outline_rounded,
-                        color: AppTheme.coral, size: 20),
-                    SizedBox(width: 8),
-                    Text('Delete Account',
-                        style: TextStyle(
-                          color: AppTheme.coral,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        )),
+                    // ── XP progress bar ─────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: _XpProgressBar(xp: user.totalXp),
+                    ),
+
+                    // ── Top Badges ──────────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                      child: _SectionCard(
+                        title: 'Top Badges',
+                        child: user.badges.isEmpty
+                            ? const _EmptySection(
+                                text: 'Play games to earn badges!')
+                            : GridView.count(
+                                crossAxisCount: 3,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                children: user.badges
+                                    .take(6)
+                                    .map((b) => _BadgeTile(label: b))
+                                    .toList(),
+                              ),
+                      ),
+                    ),
+
+                    // ── Top Games ───────────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      child: _SectionCard(
+                        title: 'Top Games',
+                        child: user.bestScores.isEmpty
+                            ? const _EmptySection(text: 'No games played yet!')
+                            : GridView.count(
+                                crossAxisCount: 3,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                children: user.bestScores.entries
+                                    .take(6)
+                                    .map((e) {
+                                  final game = allFeedGames
+                                      .where((g) => g.id == e.key)
+                                      .firstOrNull;
+                                  return _GameTile(
+                                    tintBg: game?.tintBg ?? const Color(0xFFEEEEE8),
+                                    tintShadow: game?.tintShadow ?? const Color(0xFF999990),
+                                    iconAsset: game?.iconAsset,
+                                    emoji: game?.emoji ?? '🎮',
+                                    name: _gameNames[e.key] ?? e.key,
+                                  );
+                                }).toList(),
+                              ),
+                      ),
+                    ),
+
+                    // ── Top Scores ──────────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      child: _SectionCard(
+                        title: 'Top Scores',
+                        child: user.bestScores.isEmpty
+                            ? const _EmptySection(text: 'No scores yet. Start playing!')
+                            : Column(
+                                children: user.bestScores.entries
+                                    .take(5)
+                                    .map((e) => _ScoreRow(
+                                          game: _gameNames[e.key] ?? e.key,
+                                          score: e.value,
+                                        ))
+                                    .toList(),
+                              ),
+                      ),
+                    ),
+
+                    // ── Delete button ───────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
+                      child: GestureDetector(
+                        onTap: () => _confirmDelete(context),
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: AppTheme.coral, width: 1.5),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.delete_outline_rounded,
+                                  color: AppTheme.coral, size: 20),
+                              SizedBox(width: 8),
+                              Text('Delete Account',
+                                  style: TextStyle(
+                                    color: AppTheme.coral,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-          ),
-        ),
-      ]),
+          ]),
+        ],
+      ),
     );
   }
 }
@@ -605,7 +623,6 @@ class _ProfileHeaderCard extends StatelessWidget {
     final top = MediaQuery.of(context).padding.top;
 
     return Container(
-      color: AppTheme.primary,
       padding: EdgeInsets.fromLTRB(16, top + 12, 16, 20),
       child: Container(
         decoration: const BoxDecoration(

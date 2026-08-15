@@ -2,9 +2,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/app_theme.dart';
+import '../../core/game_theme.dart';
 import '../../services/user_provider.dart';
 import '../../widgets/common_widgets.dart';
+import '../../widgets/bounce_press.dart';
 
 class PairsEquationScreen extends StatefulWidget {
   const PairsEquationScreen({super.key});
@@ -17,11 +18,18 @@ class _Card {
   final int pairId;
   bool flipped;
   bool matched;
-  _Card({required this.text, required this.pairId, this.flipped = false, this.matched = false});
+  _Card({
+    required this.text,
+    required this.pairId,
+    this.flipped = false,
+    this.matched = false,
+  });
 }
 
 class _PairsEquationScreenState extends State<PairsEquationScreen> {
   final _rng = Random();
+  static final _tint = kGameTints['pairs_equation']!;
+
   late List<_Card> _cards;
   List<int> _selected = [];
   int _score = 0, _moves = 0;
@@ -34,13 +42,16 @@ class _PairsEquationScreenState extends State<PairsEquationScreen> {
     for (int i = 0; i < 6; i++) {
       final a = rng.nextInt(12) + 1;
       final b = rng.nextInt(12) + 1;
-      pairs.add(['$a × $b', '${a*b}']);
+      pairs.add(['$a × $b', '${a * b}']);
     }
     return pairs;
   }
 
   @override
-  void initState() { super.initState(); _setup(); }
+  void initState() {
+    super.initState();
+    _setup();
+  }
 
   void _setup() {
     final pairs = _generatePairs();
@@ -91,72 +102,152 @@ class _PairsEquationScreenState extends State<PairsEquationScreen> {
   void _endGame() {
     setState(() => _showResult = true);
     context.read<UserProvider>().recordGameResult(
-      gameId: 'pairs_equation', gameName: 'Equation Pairs',
-      score: _score, timeTakenSeconds: 0, won: _score >= 120,
+      gameId: 'pairs_equation',
+      gameName: 'Equation Pairs',
+      score: _score,
+      timeTakenSeconds: 0,
+      won: _score >= 120,
     );
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFF0D1F3C), Color(0xFF1A3A6E)])),
-      child: SafeArea(child: Stack(children: [
-        Column(children: [
-          Padding(padding: const EdgeInsets.fromLTRB(16,12,16,0),
-            child: Row(children: [
-              GestureDetector(onTap: ()=>Navigator.pop(context),
-                child: Container(padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18))),
-              const SizedBox(width: 12),
-              const Text('Equation Pairs', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-              const Spacer(),
-              Text('$_moves moves', style: const TextStyle(color: AppTheme.textSec, fontSize: 12)),
-              const SizedBox(width: 12),
-              Text('$_score pts', style: const TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
-            ])),
-          const SizedBox(height: 12),
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('Match each equation to its answer!',
-              style: TextStyle(color: AppTheme.textSec, fontSize: 13))),
-          const SizedBox(height: 16),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.count(shrinkWrap: true, crossAxisCount: 3,
-              mainAxisSpacing: 10, crossAxisSpacing: 10, childAspectRatio: 1.6,
-              children: List.generate(_cards.length, (i) {
-                final c = _cards[i];
-                return GestureDetector(
-                  onTap: () => _tap(i),
-                  child: AnimatedContainer(duration: const Duration(milliseconds: 250),
-                    decoration: BoxDecoration(
-                      color: c.matched
-                          ? AppTheme.teal.withOpacity(0.2)
-                          : c.flipped
-                              ? AppTheme.accent.withOpacity(0.2)
-                              : Colors.white10,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: c.matched
-                          ? AppTheme.teal.withOpacity(0.6)
-                          : c.flipped
-                              ? AppTheme.accent.withOpacity(0.6)
-                              : Colors.white12, width: c.flipped || c.matched ? 1.5 : 0.5),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _tint.bg,
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // ── Header ─────────────────────────────────────────────
+                GameHeader(
+                  title: '🔢 Equation Pairs',
+                  actions: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [kHardShadow],
+                      ),
+                      child: Text(
+                        '$_moves moves',
+                        style: const TextStyle(
+                          color: kTextSec,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                    child: Center(child: c.flipped || c.matched
-                        ? Text(c.text, textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: c.matched ? AppTheme.teal : Colors.white,
-                              fontSize: 14, fontWeight: FontWeight.w700))
-                        : const Icon(Icons.help_outline, color: AppTheme.textMuted, size: 20))));
-              }))),
-        ]),
-        if (_showResult) GameResultOverlay(
-          score: _score, xpEarned: _score >= 120 ? 120 : 20, won: _score >= 120,
-          onContinue: () => Navigator.pop(context),
-          onRetry: () => setState(() => _setup()),
-        ),
-      ])),
-    ),
-  );
+                    const SizedBox(width: 8),
+                    ScoreBadge(score: _score),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GameCard(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
+                    child: const Text(
+                      'Match each equation to its answer!',
+                      style: TextStyle(
+                        color: kDark,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Card grid ───────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.6,
+                    children: List.generate(
+                      _cards.length,
+                      (i) {
+                        final c = _cards[i];
+                        Color bg;
+                        Color border;
+                        Color text;
+
+                        if (c.matched) {
+                          bg = kTeal.withValues(alpha: 0.12);
+                          border = kTeal;
+                          text = kTeal;
+                        } else if (c.flipped) {
+                          bg = _tint.mid;
+                          border = _tint.shadow;
+                          text = _tint.shadow;
+                        } else {
+                          bg = Colors.white;
+                          border = kBorder;
+                          text = kTextMuted;
+                        }
+
+                        return BouncePressWidget(
+                          onTap: () => _tap(i),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            decoration: BoxDecoration(
+                              color: bg,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: border,
+                                  width:
+                                      c.flipped || c.matched ? 1.5 : 1),
+                              boxShadow: const [kHardShadow],
+                            ),
+                            child: Center(
+                              child: c.flipped || c.matched
+                                  ? Text(
+                                      c.text,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: text,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.help_outline_rounded,
+                                      color: kTextMuted,
+                                      size: 20,
+                                    ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (_showResult)
+            GameResultOverlay(
+              score: _score,
+              xpEarned: _score >= 120 ? 120 : 20,
+              won: _score >= 120,
+              onContinue: () => Navigator.pop(context),
+              onRetry: () => setState(() => _setup()),
+            ),
+        ],
+      ),
+    );
+  }
 }
